@@ -1,0 +1,6 @@
+{
+  "name": "LakNexus OMS",
+  "description": "Sri Lanka's ultimate AI-powered Order Management System featuring multi-channel order scraping, local city auto-completion, RTO risk prediction, and financial analysis.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
