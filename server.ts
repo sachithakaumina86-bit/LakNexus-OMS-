@@ -4,6 +4,7 @@ import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 import { lookupCity, SRI_LANKAN_CITIES, getStandardizedCourierAddress } from "./src/cities.js";
+import { enterpriseRouter } from "./server/enterprise-routes";
 
 // Load environment variables
 dotenv.config();
@@ -12,6 +13,7 @@ const app = express();
 const PORT = 3000;
 
 app.use(express.json());
+app.use("/api/enterprise", enterpriseRouter);
 
 // Initialize Gemini safely
 let aiClient: GoogleGenAI | null = null;

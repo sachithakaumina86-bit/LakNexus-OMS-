@@ -45,6 +45,15 @@ export default function InventoryManager({
   const [bulkUpdateOpen, setBulkUpdateOpen] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
 
+  // New stock entry states
+  const [isAddStockOpen, setIsAddStockOpen] = useState(false);
+  const [newStockName, setNewStockName] = useState("");
+  const [newStockCost, setNewStockCost] = useState<number | "">("");
+  const [newStockPrice, setNewStockPrice] = useState<number | "">("");
+  const [newStockQty, setNewStockQty] = useState<number | "">("");
+  const [newStockAlert, setNewStockAlert] = useState<number>(5);
+  const [newStockSku, setNewStockSku] = useState("");
+
   const tenantKey = currentTenantId || "default";
   const DEFAULT_TENANT_INVENTORY = DEFAULT_TENANT_INVENTORIES[tenantKey] || DEFAULT_TENANT_INVENTORIES["default"];
 
@@ -122,7 +131,7 @@ export default function InventoryManager({
     // Update standard inventory matrix source of truth
     const updatedInventory = inventory.map(item => {
       if (item.id === itemId) {
-        return { ...item, stock: updatedStock };
+        return { ...item, stock: updatedStock, stockQuantity: updatedStock };
       }
       return item;
     });
@@ -145,6 +154,77 @@ export default function InventoryManager({
         console.error("Failed to update rich products stock", err);
       }
     }
+  };
+
+  const handleAddNewStockSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newStockName.trim()) {
+      alert("Product Name is required.");
+      return;
+    }
+    const cost = Number(newStockCost) || 0;
+    const price = Number(newStockPrice) || 0;
+    const stock = Number(newStockQty) || 0;
+    const lowStock = Number(newStockAlert) || 5;
+
+    // Generate unique ID
+    const nextId = String(inventory.length > 0 ? Math.max(...inventory.map(i => parseInt(i.id) || 0)) + 1 : 1);
+
+    const newItem: InventoryItem = {
+      id: nextId,
+      name: newStockName.trim(),
+      cost,
+      price,
+      stock
+    };
+
+    const newInventory = [...inventory, newItem];
+    setInventory(newInventory);
+
+    // Save standard inventory for the tenant in localStorage
+    const tenantInvKey = `laknexus_${currentTenantId || "default"}_inventory`;
+    localStorage.setItem(tenantInvKey, JSON.stringify(newInventory));
+
+    // Create and save to rich products as well
+    const skuVal = newStockSku.trim() || `SKU-${newStockName.trim().toUpperCase().replace(/\s+/g, "-").replace(/[^A-Z0-9-]/g, "")}-${nextId}`;
+    const newRich = {
+      id: nextId,
+      name: newStockName.trim(),
+      sku: skuVal,
+      category: "E-Commerce Goods",
+      description: `Premium quality ${newStockName.trim()} with premium packing.`,
+      productType: "Simple" as const,
+      status: "Active" as const,
+      lowStockAlert: lowStock,
+      costPrice: cost,
+      salePrice: price,
+      stockQuantity: stock,
+      weight: 0.35,
+      dimensions: {
+        length: 15,
+        width: 10,
+        height: 5
+      }
+    };
+
+    const updatedRichProducts = [...richProducts, newRich];
+    setRichProducts(updatedRichProducts);
+    localStorage.setItem(productsKey, JSON.stringify(updatedRichProducts));
+
+    // Emit storage event
+    window.dispatchEvent(new Event("storage"));
+
+    setToastMessage(`🎉 "${newStockName.trim()}" සාර්ථකව ගබඩා තොගයට එකතු කරන ලදී!`);
+    setTimeout(() => setToastMessage(null), 4000);
+
+    // Reset fields
+    setNewStockName("");
+    setNewStockCost("");
+    setNewStockPrice("");
+    setNewStockQty("");
+    setNewStockAlert(5);
+    setNewStockSku("");
+    setIsAddStockOpen(false);
   };
 
   // Isolate chat history session-wise (each unique session or user view)
@@ -377,6 +457,15 @@ export default function InventoryManager({
             
             {/* Quick Actions Panel */}
             <div className="flex flex-wrap items-center gap-2 select-none">
+              {/* Enter New Stock button */}
+              <button
+                onClick={() => setIsAddStockOpen(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 font-bold transition-all active:scale-95 cursor-pointer"
+              >
+                <span className="text-sm">➕</span>
+                Enter New Stock
+              </button>
+
               {/* Barcodes button */}
               <button
                 onClick={() => setBarcodeActionMsg(true)}
@@ -663,9 +752,9 @@ export default function InventoryManager({
                   ) : (
                     inventory.map(item => {
                       const rich = richProducts.find(p => p.id === item.id);
-                      const skuVal = rich?.sku || `SKU-${item.name.replace(/\s+/g, "-").toUpperCase()}-${item.id}`;
-                      const alertThreshold = rich?.lowStockAlert !== undefined ? rich.lowStockAlert : 5;
-                      const statusVal = rich?.status || "Active";
+                      const skuVal = item.sku || rich?.sku || `SKU-${item.name.replace(/\s+/g, "-").toUpperCase()}-${item.id}`;
+                      const alertThreshold = item.lowStockAlert !== undefined ? item.lowStockAlert : (rich?.lowStockAlert !== undefined ? rich.lowStockAlert : 5);
+                      const statusVal = item.status || rich?.status || "Active";
                       const isLowStock = item.stock <= alertThreshold;
 
                       return (
@@ -962,6 +1051,153 @@ export default function InventoryManager({
                   </button>
                 </div>
               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Enter New Stock Modal */}
+      <AnimatePresence>
+        {isAddStockOpen && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 15 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 15 }}
+              className="bg-[#0b0f19] border border-cyan-500/30 rounded-2xl w-full max-w-lg overflow-hidden shadow-[0_0_50px_rgba(6,182,212,0.15)] text-slate-100"
+            >
+              {/* Header */}
+              <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between bg-[#0e1424]">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">📦</span>
+                  <div>
+                    <h3 className="text-sm font-extrabold text-white tracking-wider uppercase font-mono">
+                      Enter New Stock / SKU
+                    </h3>
+                    <p className="text-[10px] text-slate-400 font-medium">නව තොග භාණ්ඩයක් ඇතුලත් කිරීම</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setIsAddStockOpen(false)} 
+                  className="text-slate-400 hover:text-white cursor-pointer p-1 transition-all rounded text-lg leading-none"
+                  type="button"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Form */}
+              <form onSubmit={handleAddNewStockSubmit} className="p-5 space-y-4 text-left">
+                {/* Product Name */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-300 uppercase tracking-wider block">
+                    Product Name / භාණ්ඩයේ නම <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={newStockName}
+                    onChange={(e) => setNewStockName(e.target.value)}
+                    placeholder="e.g. Trendy Cotton Shirt / Galle Saffron Powder"
+                    className="w-full text-xs px-3.5 py-3 rounded-xl border border-slate-800 bg-[#070a13] text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/20 transition-all font-sans font-medium"
+                  />
+                </div>
+
+                {/* SKU Code (Optional) */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-300 uppercase tracking-wider block">
+                    Custom SKU / SKU කේතය (Optional - Auto-generated if blank)
+                  </label>
+                  <input
+                    type="text"
+                    value={newStockSku}
+                    onChange={(e) => setNewStockSku(e.target.value)}
+                    placeholder="e.g. SKU-SHIRT-BLUE-M"
+                    className="w-full text-xs font-mono px-3.5 py-3 rounded-xl border border-slate-800 bg-[#070a13] text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/20 transition-all font-medium"
+                  />
+                </div>
+
+                {/* Cost price & Sale Price Grid */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-300 uppercase tracking-wider block">
+                      Sourcing Cost / ඒකක මිල (LKR)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={newStockCost}
+                      onChange={(e) => setNewStockCost(e.target.value === "" ? "" : Math.max(0, parseFloat(e.target.value) || 0))}
+                      placeholder="Cost in LKR (e.g. 800)"
+                      className="w-full text-xs font-mono px-3.5 py-3 rounded-xl border border-slate-800 bg-[#070a13] text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/20 transition-all font-medium"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-300 uppercase tracking-wider block">
+                      Selling Price / විකුණුම් මිල (LKR)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={newStockPrice}
+                      onChange={(e) => setNewStockPrice(e.target.value === "" ? "" : Math.max(0, parseFloat(e.target.value) || 0))}
+                      placeholder="Price in LKR (e.g. 1950)"
+                      className="w-full text-xs font-mono px-3.5 py-3 rounded-xl border border-slate-800 bg-[#070a13] text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/20 transition-all font-medium"
+                    />
+                  </div>
+                </div>
+
+                {/* Initial Qty & Alert Threshold Grid */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-300 uppercase tracking-wider block">
+                      Initial Quantity / ආරම්භක තොගය
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      required
+                      value={newStockQty}
+                      onChange={(e) => setNewStockQty(e.target.value === "" ? "" : Math.max(0, parseInt(e.target.value) || 0))}
+                      placeholder="e.g. 100"
+                      className="w-full text-xs font-mono px-3.5 py-3 rounded-xl border border-slate-800 bg-[#070a13] text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/20 transition-all font-medium"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-300 uppercase tracking-wider block">
+                      Low Stock Alert / අවම සීමාව
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      required
+                      value={newStockAlert}
+                      onChange={(e) => setNewStockAlert(Math.max(1, parseInt(e.target.value) || 5))}
+                      placeholder="Alert threshold (e.g. 5)"
+                      className="w-full text-xs font-mono px-3.5 py-3 rounded-xl border border-slate-800 bg-[#070a13] text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/20 transition-all font-medium"
+                    />
+                  </div>
+                </div>
+
+                {/* Footer Controls */}
+                <div className="pt-4 border-t border-slate-800/80 flex items-center justify-end gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setIsAddStockOpen(false)}
+                    className="px-4 py-3 text-xs font-bold bg-slate-800 hover:bg-slate-750 text-slate-300 rounded-xl transition-all cursor-pointer min-h-[44px] min-w-[100px]"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-3 text-xs font-bold bg-[#06b6d4] hover:bg-cyan-500 text-slate-950 rounded-xl transition-all font-mono flex items-center gap-1.5 cursor-pointer shadow-[0_0_20px_rgba(6,182,212,0.3)] min-h-[44px]"
+                  >
+                    🚀 Save & Sync Stock
+                  </button>
+                </div>
+              </form>
             </motion.div>
           </div>
         )}

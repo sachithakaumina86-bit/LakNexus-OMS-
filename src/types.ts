@@ -83,4 +83,16 @@ export interface InventoryItem {
   cost: number;
   price: number;
   stock: number;
+  sku?: string;
+  category?: string;
+  description?: string;
+  productType?: "Simple" | "Variable";
+  status?: "Active" | "Draft";
+  lowStockAlert?: number;
+  weight?: number;
+  dimensions?: {
+    length: number;
+    width: number;
+    height: number;
+  };
 }

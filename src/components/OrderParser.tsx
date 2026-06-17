@@ -39,6 +39,9 @@ export default function OrderParser({ onSaveOrder }: OrderParserProps) {
   const rtoThreshold = Number(localStorage.getItem("laknexus_rto_threshold") || "65");
   const storeName = localStorage.getItem("laknexus_merchant_name") || "LakNexus OMS Demo Store";
   const defaultCourier = localStorage.getItem("laknexus_default_courier") || "Koombiyo Logistics";
+  const businessAddress = localStorage.getItem("laknexus_business_address") || "No. 100, High Level Rd, Colombo";
+  const businessPhone = localStorage.getItem("laknexus_business_phone") || "011-2345678";
+  const businessOwner = localStorage.getItem("laknexus_business_owner") || "";
   
   // Mic speech states
   const [isRecording, setIsRecording] = useState(false);
@@ -215,24 +218,24 @@ export default function OrderParser({ onSaveOrder }: OrderParserProps) {
 
     const lines = [
       center(storeName.toUpperCase()),
-      center("ලක්නෙක්සස් සිල්ලර වෙළඳසැල"),
-      center("No. 100, High Level Rd, Colombo"),
-      center("Tel: 011-2345678"),
+      center(businessAddress),
+      center(`Tel: ${businessPhone}`),
+      businessOwner ? center(`Manager: ${businessOwner}`) : null,
       divider,
-      center("** POS RECEIPT / බිල්පත **"),
+      center("** POS RECEIPT **"),
       divider,
-      `DATE/කාලය: ${formattedDate}`,
+      `DATE     : ${formattedDate}`,
       `BILL NO  : LN-TEMP-${Math.floor(100 + Math.random() * 899)}`,
       divider,
-      "CUSTOMER INFO / පාරිභෝගිකයා:",
-      `Name/නම  : ${parsedData.customerName}`,
-      `Tel/දුරකථන: ${parsedData.phone1}`,
-      parsedData.phone2 ? `Tel2/අතිරේක: ${parsedData.phone2}` : "",
-      `Addr/ලිපිනය: ${parsedData.addressLine1 || ""}`,
+      "පාරිභෝගික විස්තර:",
+      `නම       : ${parsedData.customerName}`,
+      `දුරකථන   : ${parsedData.phone1}`,
+      parsedData.phone2 ? `අතිරේක   : ${parsedData.phone2}` : "",
+      `ලිපිනය   : ${parsedData.addressLine1 || ""}`,
       parsedData.addressLine2 ? `             ${parsedData.addressLine2}` : "",
-      `City/නගරය : ${parsedData.city} (${parsedData.district} Dist)`,
+      `නගරය     : ${parsedData.city} (${parsedData.district} Dist)`,
       divider,
-      "ITEMS / මිලදී ගත් දෑ:",
+      "ITEMS:",
       divider,
       ...parsedData.items.flatMap((it: any) => {
         const specs = [it.size, it.color].filter(Boolean).join("/");
@@ -243,14 +246,13 @@ export default function OrderParser({ onSaveOrder }: OrderParserProps) {
         return [itemHeader, justify(itemCalculation, itemCost)];
       }),
       divider,
-      justify("SUBTOTAL / එකතුව", `Rs. ${sub.toLocaleString()}`),
-      justify("DELIVERY / ප්‍රවාහන", `Rs. ${fee.toLocaleString()}`),
+      justify("SUBTOTAL", `Rs. ${sub.toLocaleString()}`),
+      justify("DELIVERY", `Rs. ${fee.toLocaleString()}`),
       center(`(${parsedData.courierRecommended || defaultCourier})`),
       dblDivider,
-      justify("GRAND TOTAL / එකතුව", `Rs. ${tot.toLocaleString()}`),
+      justify("GRAND TOTAL", `Rs. ${tot.toLocaleString()}`),
       dblDivider,
-      center("THANK YOU! / ස්තූතියි!"),
-      center("නැවත පැමිණෙන්න!"),
+      center("THANK YOU!"),
       center("Powered by LakNexus OMS AI"),
       divider
     ].filter((line) => line !== null && line !== undefined && line !== "");

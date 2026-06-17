@@ -40,139 +40,33 @@ export default function ProductsSection({
 }: ProductsSectionProps) {
   const [view, setView] = useState<"landing" | "add" | "catalog">("landing");
   
-  // Load products list from storage or generate defaults
-  const [products, setProducts] = useState<Product[]>(() => {
-    const saved = localStorage.getItem(`laknexus_${currentTenantId}_products_rich`);
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        // ignore
-      }
-    }
-    
-    // Built initial products matching inventory
-    return inventory.map((item) => ({
+  // Derive products directly from parent inventory (Single Source of Truth)
+  const products: Product[] = inventory.map((item) => {
+    return {
       id: item.id,
       name: item.name,
-      sku: `SKU-${item.name.replace(/\s+/g, "-").toUpperCase()}-${item.id}`,
-      category: "E-Commerce Goods",
-      description: `Premium quality ${item.name} with premium packing. Perfect for digital ads and rapid scale-up.`,
-      productType: "Simple" as const,
-      status: "Active" as const,
-      lowStockAlert: 5,
+      sku: item.sku || `SKU-${item.name.replace(/\s+/g, "-").replace(/[^a-zA-Z0-9-]/g, "").toUpperCase()}-${item.id}`,
+      category: item.category || "General Retail",
+      description: item.description || `Premium quality ${item.name} with premium packing. Perfect for digital ads and rapid scale-up.`,
+      productType: (item.productType as "Simple" | "Variable") || "Simple",
+      status: (item.status as "Active" | "Draft") || "Active",
+      lowStockAlert: item.lowStockAlert !== undefined ? item.lowStockAlert : 5,
       costPrice: item.cost,
       salePrice: item.price,
       stockQuantity: item.stock,
-      weight: 0.35,
-      dimensions: {
+      weight: item.weight || 0.35,
+      dimensions: item.dimensions || {
         length: 15,
         width: 10,
         height: 5
       }
-    }));
+    };
   });
 
-  // Keep localStorage & bi-directional inventory sync in check
+  // Keep localStorage & other legacy keys in sync with standard inventory state
   useEffect(() => {
     localStorage.setItem(`laknexus_${currentTenantId}_products_rich`, JSON.stringify(products));
-  }, [products, currentTenantId]);
-
-  // Unified background effect coordinates any change made to parent inventory state
-  useEffect(() => {
-    let changed = false;
-    const updatedProducts = products.map((p) => {
-      const match = inventory.find((inv) => inv.id === p.id);
-      if (match) {
-        if (
-          p.stockQuantity !== match.stock || 
-          p.costPrice !== match.cost || 
-          p.salePrice !== match.price || 
-          p.name !== match.name
-        ) {
-          changed = true;
-          return {
-            ...p,
-            stockQuantity: match.stock,
-            costPrice: match.cost,
-            salePrice: match.price,
-            name: match.name,
-          };
-        }
-      }
-      return p;
-    });
-
-    // Also verify if any new items are found in parent inventory state
-    let nextProducts = [...updatedProducts];
-    inventory.forEach((inv) => {
-      const exists = nextProducts.some((p) => p.id === inv.id);
-      if (!exists) {
-        changed = true;
-        nextProducts.push({
-          id: inv.id,
-          name: inv.name,
-          sku: `SKU-${inv.name.replace(/\s+/g, "-").replace(/[^a-zA-Z0-9-]/g, "").toUpperCase()}-${inv.id}`,
-          category: "E-Commerce Goods",
-          description: `Premium quality ${inv.name} with premium packing. Perfect for digital ads and rapid scale-up.`,
-          productType: "Simple" as const,
-          status: "Active" as const,
-          lowStockAlert: 5,
-          costPrice: inv.cost,
-          salePrice: inv.price,
-          stockQuantity: inv.stock,
-          weight: 0.35,
-          dimensions: {
-            length: 15,
-            width: 10,
-            height: 5
-          }
-        });
-      }
-    });
-
-    if (changed) {
-      setProducts(nextProducts);
-      localStorage.setItem(`laknexus_${currentTenantId}_products_rich`, JSON.stringify(nextProducts));
-    }
   }, [inventory, currentTenantId]);
-
-  // Sync back to standard inventory items if any changes are made to products
-  const syncWithInventory = (updatedProducts: Product[]) => {
-    const matchedInventory: InventoryItem[] = updatedProducts.map((p) => ({
-      id: p.id,
-      name: p.name,
-      cost: p.costPrice,
-      price: p.salePrice,
-      stock: p.stockQuantity
-    }));
-    
-    // Check if inventory strictly needs to add new ones or update
-    const finalInventory = [...inventory];
-    matchedInventory.forEach((matched) => {
-      const idx = finalInventory.findIndex((i) => i.id === matched.id);
-      if (idx > -1) {
-        if (
-          finalInventory[idx].stock !== matched.stock ||
-          finalInventory[idx].cost !== matched.cost ||
-          finalInventory[idx].price !== matched.price ||
-          finalInventory[idx].name !== matched.name
-        ) {
-          finalInventory[idx] = {
-            ...finalInventory[idx],
-            name: matched.name,
-            cost: matched.cost,
-            price: matched.price,
-            stock: matched.stock
-          };
-        }
-      } else {
-        finalInventory.push(matched);
-      }
-    });
-
-    setInventory(finalInventory);
-  };
 
   // State handles for the multi-faceted new product form
   const [productType, setProductType] = useState<"Simple" | "Variable">("Simple");
@@ -230,29 +124,27 @@ export default function ProductsSection({
 
     const finalSku = sku || `SKU-${name.replace(/\s+/g, "-").toUpperCase()}-${Date.now().toString().slice(-4)}`;
 
-    const newProduct: Product = {
+    const newInventoryItem: any = {
       id: Date.now().toString(),
-      name,
+      name: name.trim(),
+      cost: costPrice || 0,
+      price: salePrice || 0,
+      stock: stockQuantity || 0,
       sku: finalSku,
       category,
       description,
       productType,
       status,
       lowStockAlert,
-      costPrice: costPrice || 0,
-      salePrice: salePrice || 0,
-      stockQuantity: stockQuantity || 0,
-      weight: weight || 0,
+      weight: weight || 0.35,
       dimensions: {
-        length: length || 0,
-        width: width || 0,
-        height: height || 0
+        length: length || 15,
+        width: width || 10,
+        height: height || 5
       }
     };
 
-    const updatedProducts = [newProduct, ...products];
-    setProducts(updatedProducts);
-    syncWithInventory(updatedProducts);
+    setInventory([newInventoryItem, ...inventory]);
     
     setNotification(`Successfully created "${name}"!`);
     handleResetForm();
@@ -266,10 +158,8 @@ export default function ProductsSection({
 
   const handleDeleteProduct = (id: string, name: string) => {
     if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
-    const updated = products.filter((p) => p.id !== id);
-    setProducts(updated);
     
-    // Also remove from parent inventory to keep sync
+    // Remove from centralized inventory to keep sync
     const finalInventory = inventory.filter((i) => i.id !== id);
     setInventory(finalInventory);
 

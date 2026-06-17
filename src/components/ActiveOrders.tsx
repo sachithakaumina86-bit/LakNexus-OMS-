@@ -24,26 +24,31 @@ const generateThermalReceipt = (order: ScrapedOrder, widthMm: 58 | 80) => {
   // Safe Colombo timeZone string format
   const billDate = order.createdAt || new Date().toLocaleString("en-US", { timeZone: "Asia/Colombo" });
 
+  const merchantName = localStorage.getItem("laknexus_merchant_name") || "LAKNEXUS OMS DEMO STORE";
+  const businessAddress = localStorage.getItem("laknexus_business_address") || "No. 100, High Level Rd, Colombo";
+  const businessPhone = localStorage.getItem("laknexus_business_phone") || "011-2345678";
+  const businessOwner = localStorage.getItem("laknexus_business_owner") || "";
+
   const lines = [
-    center("LAKNEXUS OMS DEMO STORE"),
-    center("ලක්නෙක්සස් සිල්ලර වෙළඳසැල"),
-    center("No. 100, High Level Rd, Colombo"),
-    center("Tel: 011-2345678"),
+    center(merchantName.toUpperCase()),
+    center(businessAddress),
+    center(`Tel: ${businessPhone}`),
+    businessOwner ? center(`Manager: ${businessOwner}`) : null,
     divider,
-    center("** POS RECEIPT / බිල්පත **"),
+    center("** POS RECEIPT **"),
     divider,
     `ORDER ID : ${order.id}`,
-    `DATE/කාලය: ${billDate}`,
+    `DATE     : ${billDate}`,
     divider,
-    "CUSTOMER INFO / පාරිභෝගිකයා:",
-    `Name/නම  : ${order.customer.name}`,
-    `Tel/දුරකථන: ${order.customer.phone1}`,
-    order.customer.phone2 ? `Tel2/අතිරේක: ${order.customer.phone2}` : "",
-    `Addr/ලිපිනය: ${order.customer.address.line1}`,
+    "පාරිභෝගික විස්තර:",
+    `නම       : ${order.customer.name}`,
+    `දුරකථන   : ${order.customer.phone1}`,
+    order.customer.phone2 ? `අතිරේක   : ${order.customer.phone2}` : "",
+    `ලිපිනය   : ${order.customer.address.line1}`,
     order.customer.address.line2 ? `             ${order.customer.address.line2}` : "",
-    `City/නගරය : ${order.customer.address.city} (${order.customer.address.district} Dist)`,
+    `නගරය     : ${order.customer.address.city} (${order.customer.address.district} Dist)`,
     divider,
-    "ITEMS / මිලදී ගත් දෑ:",
+    "ITEMS:",
     divider,
     ...order.items.flatMap((it) => {
       const specs = [it.size, it.color].filter(Boolean).join("/");
@@ -54,14 +59,13 @@ const generateThermalReceipt = (order: ScrapedOrder, widthMm: 58 | 80) => {
       return [itemHeader, justify(itemCalculation, itemCost)];
     }),
     divider,
-    justify("SUBTOTAL / එකතුව", `Rs. ${order.invoice.subtotal.toLocaleString()}`),
-    justify("DELIVERY / ප්‍රවාහන", `Rs. ${order.invoice.deliveryFee.toLocaleString()}`),
+    justify("SUBTOTAL", `Rs. ${order.invoice.subtotal.toLocaleString()}`),
+    justify("DELIVERY", `Rs. ${order.invoice.deliveryFee.toLocaleString()}`),
     center(`(${order.courier.recommended || "Koombiyo Delivery"})`),
     dblDivider,
-    justify("GRAND TOTAL / එකතුව", `Rs. ${order.invoice.total.toLocaleString()}`),
+    justify("GRAND TOTAL", `Rs. ${order.invoice.total.toLocaleString()}`),
     dblDivider,
-    center("THANK YOU! / ස්තූතියි!"),
-    center("නැවත පැමිණෙන්න!"),
+    center("THANK YOU!"),
     center("Powered by LakNexus OMS AI"),
     divider
   ].filter((line) => line !== null && line !== undefined && line !== "");

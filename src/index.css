@@ -16,6 +16,11 @@ body {
   border: 1px solid rgba(226, 232, 240, 0.8);
 }
 
+.dark-warehouse .glass-panel {
+  background: rgba(15, 23, 42, 0.85) !important;
+  border-color: rgba(30, 41, 59, 0.8) !important;
+}
+
 .status-glow-green {
   box-shadow: 0 0 8px rgba(34, 197, 94, 0.4);
 }
@@ -122,14 +127,32 @@ body {
   border-color: rgba(245, 158, 11, 0.25) !important;
 }
 
+.dark-warehouse .text-amber-900 {
+  color: #fcd34d !important; /* High contrast amber-300 on dark background */
+}
+
 .dark-warehouse .bg-emerald-50\/50 {
   background-color: rgba(16, 185, 129, 0.08) !important;
   border-color: rgba(16, 185, 129, 0.25) !important;
 }
 
+.dark-warehouse .text-emerald-950 {
+  color: #34d399 !important; /* High contrast emerald-400 on dark background */
+}
+
 .dark-warehouse .bg-rose-50\/50 {
   background-color: rgba(244, 63, 94, 0.08) !important;
   border-color: rgba(244, 63, 94, 0.25) !important;
+}
+
+.dark-warehouse .bg-blue-50\/40 {
+  background-color: rgba(30, 41, 59, 0.6) !important;
+  border-color: rgba(30, 41, 59, 0.8) !important;
+  color: #f8fafc !important;
+}
+
+.dark-warehouse .border-blue-100 {
+  border-color: #1e293b !important;
 }
 
 /* Metric Colors */

@@ -18,12 +18,14 @@ import FinancialPlanner from "./components/FinancialPlanner";
 import InventoryManager from "./components/InventoryManager";
 import BusinessIntelligence from "./components/BusinessIntelligence";
 import ProductsSection from "./components/ProductsSection";
+import EnterpriseSuite from "./components/EnterpriseSuite";
 import { ScrapedOrder } from "./types";
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<"dashboard" | "parser" | "financials" | "ledger" | "settings" | "security" | "inventory" | "intelligence" | "products">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "parser" | "financials" | "ledger" | "settings" | "security" | "inventory" | "intelligence" | "products" | "enterprise">("dashboard");
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
+  const [isQuickActionsOpen, setIsQuickActionsOpen] = useState(false);
   const [calcActiveTab, setCalcActiveTab] = useState<"ai" | "manual">("ai");
   const [calcInput, setCalcInput] = useState("");
   const [calcResult, setCalcResult] = useState("");
@@ -58,6 +60,9 @@ export default function App() {
   const [otherFee, setOtherFee] = useState<number>(() => Number(localStorage.getItem(`laknexus_${localStorage.getItem("laknexus_current_tenant_id") || "tenant_colombo_retail"}_other_fee`) || "550"));
   const [rtoThreshold, setRtoThreshold] = useState<number>(() => Number(localStorage.getItem(`laknexus_${localStorage.getItem("laknexus_current_tenant_id") || "tenant_colombo_retail"}_rto_threshold`) || "65"));
   const [merchantName, setMerchantName] = useState<string>(() => localStorage.getItem(`laknexus_${localStorage.getItem("laknexus_current_tenant_id") || "tenant_colombo_retail"}_merchant_name`) || "Colombo Retail Group");
+  const [businessOwner, setBusinessOwner] = useState<string>(() => localStorage.getItem(`laknexus_${localStorage.getItem("laknexus_current_tenant_id") || "tenant_colombo_retail"}_business_owner`) || "S. Kaumina");
+  const [businessAddress, setBusinessAddress] = useState<string>(() => localStorage.getItem(`laknexus_${localStorage.getItem("laknexus_current_tenant_id") || "tenant_colombo_retail"}_business_address`) || "No. 100, High Level Rd, Colombo");
+  const [businessPhone, setBusinessPhone] = useState<string>(() => localStorage.getItem(`laknexus_${localStorage.getItem("laknexus_current_tenant_id") || "tenant_colombo_retail"}_business_phone`) || "011-2345678");
   const [defaultCourier, setDefaultCourier] = useState<string>(() => localStorage.getItem(`laknexus_${localStorage.getItem("laknexus_current_tenant_id") || "tenant_colombo_retail"}_default_courier`) || "Koombiyo Logistics");
   const [successToast, setSuccessToast] = useState<string | null>(null);
 
@@ -350,6 +355,22 @@ export default function App() {
     localStorage.setItem("laknexus_rto_threshold", rtoThreshold.toString());
     localStorage.setItem("laknexus_merchant_name", merchantName);
     localStorage.setItem("laknexus_default_courier", defaultCourier);
+
+    // Save tenant-specific values
+    localStorage.setItem(`laknexus_${currentTenantId}_wp_fee`, wpFee.toString());
+    localStorage.setItem(`laknexus_${currentTenantId}_outstation_fee`, outstationFee.toString());
+    localStorage.setItem(`laknexus_${currentTenantId}_other_fee`, otherFee.toString());
+    localStorage.setItem(`laknexus_${currentTenantId}_rto_threshold`, rtoThreshold.toString());
+    localStorage.setItem(`laknexus_${currentTenantId}_merchant_name`, merchantName);
+    localStorage.setItem(`laknexus_${currentTenantId}_default_courier`, defaultCourier);
+    localStorage.setItem(`laknexus_${currentTenantId}_business_owner`, businessOwner);
+    localStorage.setItem(`laknexus_${currentTenantId}_business_address`, businessAddress);
+    localStorage.setItem(`laknexus_${currentTenantId}_business_phone`, businessPhone);
+
+    // Save global fallback keys for direct reading compatibility across views
+    localStorage.setItem("laknexus_business_owner", businessOwner);
+    localStorage.setItem("laknexus_business_address", businessAddress);
+    localStorage.setItem("laknexus_business_phone", businessPhone);
     
     setSuccessToast("OMS configuration saved! / සැකසුම් යාවත්කාලීන කරන ලදී!");
     setTimeout(() => setSuccessToast(null), 3000);
@@ -588,6 +609,21 @@ export default function App() {
 
     const savedCourier = localStorage.getItem(`laknexus_${currentTenantId}_default_courier`) || "Koombiyo Logistics";
     setDefaultCourier(savedCourier);
+
+    const savedOwner = localStorage.getItem(`laknexus_${currentTenantId}_business_owner`) || (currentTenantId === "tenant_colombo_retail" ? "S. Kaumina" : currentTenantId === "tenant_kandy_boutique" ? "K. Perera" : "G. Silva");
+    setBusinessOwner(savedOwner);
+    localStorage.setItem(`laknexus_${currentTenantId}_business_owner`, savedOwner);
+    localStorage.setItem("laknexus_business_owner", savedOwner);
+
+    const savedAddress = localStorage.getItem(`laknexus_${currentTenantId}_business_address`) || "No. 100, High Level Rd, Colombo";
+    setBusinessAddress(savedAddress);
+    localStorage.setItem(`laknexus_${currentTenantId}_business_address`, savedAddress);
+    localStorage.setItem("laknexus_business_address", savedAddress);
+
+    const savedPhone = localStorage.getItem(`laknexus_${currentTenantId}_business_phone`) || "011-2345678";
+    setBusinessPhone(savedPhone);
+    localStorage.setItem(`laknexus_${currentTenantId}_business_phone`, savedPhone);
+    localStorage.setItem("laknexus_business_phone", savedPhone);
 
     // Today / Month metrics
     const savedTodayOrders = localStorage.getItem(`laknexus_${currentTenantId}_today_report_orders`);
@@ -1098,6 +1134,32 @@ export default function App() {
               <p className="text-[9px] text-slate-500 font-medium mt-0.5">ව්‍යාපාර තීරණ සහායකයා</p>
             </div>
           </button>
+
+          <button
+            id="sidebar-tab-enterprise"
+            onClick={() => {
+              setActiveTab("enterprise");
+              setIsMobileSidebarOpen(false);
+            }}
+            className={`group w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold transition-all ${
+              activeTab === "enterprise" 
+                ? "bg-purple-600 text-white shadow-md shadow-purple-900/20" 
+                : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+            }`}
+          >
+            <ShieldCheck 
+              size={18} 
+              className={`shrink-0 transition-colors duration-200 ${
+                activeTab === "enterprise" 
+                  ? "text-purple-300 drop-shadow-[0_0_8px_rgba(168,85,247,0.85)]" 
+                  : "text-purple-500/80 group-hover:text-purple-300"
+              }`} 
+            />
+            <div className="flex-1">
+              <p className="leading-tight text-slate-100">Enterprise Compliance</p>
+              <p className="text-[9px] text-slate-500 font-medium mt-0.5">මෙහෙයුම් සහ අනුකූලතාවය</p>
+            </div>
+          </button>
         </div>
 
         {/* Group 4: System Settings */}
@@ -1217,9 +1279,18 @@ export default function App() {
                       OMS v4.2
                     </span>
                   </div>
-                  <p className="hidden lg:block text-[10px] text-slate-400 font-medium">
-                    Core process automation console for Sri Lankan e-commerce merchants
-                  </p>
+                  <div className="hidden lg:flex flex-col">
+                    <p className="text-[10px] text-slate-400 font-medium leading-tight">
+                      Core process automation console for Sri Lankan e-commerce merchants
+                    </p>
+                    <div className="flex items-center gap-2.5 mt-0.5 text-[10px] text-slate-450 font-bold">
+                      <span className="flex items-center gap-0.5">👤 Owner: <span className="text-slate-700 font-black">{businessOwner || "Not Set"}</span></span>
+                      <span>•</span>
+                      <span className="flex items-center gap-0.5 font-mono">📞 {businessPhone}</span>
+                      <span>•</span>
+                      <span className="flex items-center gap-0.5">📍 <span className="truncate max-w-[220px]" title={businessAddress}>{businessAddress}</span></span>
+                    </div>
+                  </div>
                 </div>
                 
                 {/* Mobile Sidebar Toggle Button */}
@@ -1269,6 +1340,16 @@ export default function App() {
                     </span>
                   </div>
                 </div>
+
+                {/* QUICK ACCESS ACTION BUTTON */}
+                <button
+                  id="navbar-quick-actions-btn"
+                  onClick={() => setIsQuickActionsOpen(!isQuickActionsOpen)}
+                  className="h-11 w-11 flex items-center justify-center rounded-xl cursor-pointer border border-cyan-500/40 bg-cyan-950/20 backdrop-blur-md shadow-[0_0_12px_rgba(6,182,212,0.15)] text-cyan-300 hover:bg-cyan-900/45 hover:shadow-[0_0_18px_rgba(6,182,212,0.45)] transition-all duration-300 select-none shrink-0"
+                  title="Quick Access Console (⚡)"
+                >
+                  <Zap size={16} className="text-cyan-300 animate-pulse" />
+                </button>
 
                 {/* RESTORE CALCULATOR BUTTON (FAR RIGHT) */}
                 <button
@@ -1421,12 +1502,10 @@ export default function App() {
             {/* Content Display Panels switcher */}
             <div className="min-h-[450px]">
               {activeTab === "dashboard" && (
-                <div className="flex flex-col lg:flex-row gap-6 items-start">
-                  {/* Left Column (Main Metrics) */}
-                  <div className="flex-1 w-full space-y-6 min-w-0">
-                    {/* Real-time side-by-side report grid */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-                    
+                <div className="w-full space-y-6">
+                  {/* Real-time side-by-side report grid */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+                  
                     {/* Card 1: Today's Summary */}
                     <div id="dashboard-today-card" className="bg-slate-900/40 backdrop-blur-md border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.1)] rounded-2xl p-6 flex flex-col justify-between h-full text-white">
                       <div>
@@ -1443,7 +1522,7 @@ export default function App() {
                         </div>
 
                         {/* Metrics Grid Row */}
-                        <div className="grid grid-cols-3 gap-3 py-6 text-center border-b border-blue-500/10 mb-5">
+                        <div className="grid grid-cols-3 gap-3 py-4 text-center border-b border-blue-500/10 mb-4">
                           <div className="flex flex-col items-center justify-center space-y-0.5 min-w-0">
                             <span className="text-lg md:text-xl font-mono font-bold text-white whitespace-nowrap truncate">{todayReportOrders}</span>
                             <span className="text-[10px] text-slate-200 font-semibold uppercase tracking-wider whitespace-nowrap truncate animate-pulse">Total Orders</span>
@@ -1462,8 +1541,46 @@ export default function App() {
                           </div>
                         </div>
 
+                        {/* Extended Financial Health Indicators */}
+                        <div className="grid grid-cols-3 gap-2 bg-[#080b13]/80 border border-slate-850 p-3 rounded-xl mt-3">
+                          <div className="text-center min-w-0">
+                            <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider truncate">Net Profit</div>
+                            <div className={`text-xs font-bold font-mono ${(todayReportRev - todayExpenses) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                              LKR {(todayReportRev - todayExpenses).toLocaleString(undefined, {maximumFractionDigits: 0})}
+                            </div>
+                          </div>
+                          <div className="text-center min-w-0">
+                            <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider truncate">Avg Order (AOV)</div>
+                            <div className="text-xs font-bold text-cyan-400 font-mono">
+                              LKR {(todayReportOrders > 0 ? (todayReportRev / todayReportOrders) : 0).toLocaleString(undefined, {maximumFractionDigits: 0})}
+                            </div>
+                          </div>
+                          <div className="text-center min-w-0">
+                            <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider truncate">RTO Risk</div>
+                            <div className={`text-xs font-bold font-mono ${(todayReportOrders > 0 ? (todayReturned / todayReportOrders) * 100 : 0) > 15 ? "text-rose-400" : "text-emerald-400"}`}>
+                              {(todayReportOrders > 0 ? (todayReturned / todayReportOrders) * 100 : 0).toFixed(1)}%
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Daily Progress Goal Tracker */}
+                        <div className="mt-3 bg-[#0a0d16] p-3 rounded-xl border border-slate-850 space-y-1.5">
+                          <div className="flex justify-between items-center text-[10px]">
+                            <span className="text-slate-400 uppercase font-bold tracking-wider flex items-center gap-1">
+                              🎯 Daily Target Tracker ({Math.min(100, Math.round((todayReportRev / 100000) * 100))}% Achieved)
+                            </span>
+                            <span className="font-mono text-cyan-400">Goal: LKR 100,000</span>
+                          </div>
+                          <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                            <div 
+                              className="bg-gradient-to-r from-blue-500 to-cyan-400 h-full transition-all duration-500 rounded-full" 
+                              style={{ width: `${Math.min(100, Math.max(0, (todayReportRev / 100000) * 100))}%` }}
+                            />
+                          </div>
+                        </div>
+
                         {/* Breakdown status indicators */}
-                        <div className="space-y-3">
+                        <div className="space-y-3 mt-4">
                           <div className="flex justify-between items-center">
                             <h4 className="text-[10px] text-white font-bold uppercase tracking-widest">Today's Status Breakdown</h4>
                             <span className="text-[9px] text-slate-300 font-medium">දවසේ තත්ත්වය</span>
@@ -1491,10 +1608,80 @@ export default function App() {
                             </div>
                           </div>
                         </div>
+
+                        {/* Interactive Calibration Controls */}
+                        <div className="mt-4 pt-3 border-t border-slate-800/80 space-y-2">
+                          <div className="flex justify-between items-center text-[10px] text-slate-400">
+                            <span className="font-extrabold uppercase tracking-widest flex items-center gap-1">
+                              ⚙️ Adjust Today's Data (දත්ත සකසන්න)
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-3 gap-2">
+                            <div className="flex items-center justify-between bg-[#0b0f19]/40 p-1 px-2 rounded-lg border border-slate-800/60">
+                              <span className="text-[9px] font-mono text-slate-300">Revenue</span>
+                              <div className="flex items-center gap-1">
+                                <button onClick={() => setTodayReportRev(prev => Math.max(0, prev - 1000))} className="h-4 w-4 bg-[#0b0f19] text-slate-300 hover:text-white hover:bg-slate-800 text-[10px] rounded flex items-center justify-center cursor-pointer select-none">-</button>
+                                <button onClick={() => setTodayReportRev(prev => prev + 1000)} className="h-4 w-4 bg-[#0b0f19] text-slate-300 hover:text-white hover:bg-slate-800 text-[10px] rounded flex items-center justify-center cursor-pointer select-none">+</button>
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between bg-[#0b0f19]/40 p-1 px-2 rounded-lg border border-slate-800/60">
+                              <span className="text-[9px] font-mono text-slate-300">Expenses</span>
+                              <div className="flex items-center gap-1">
+                                <button onClick={() => setTodayExpenses(prev => Math.max(0, prev - 500))} className="h-4 w-4 bg-[#0b0f19] text-slate-300 hover:text-white hover:bg-slate-800 text-[10px] rounded flex items-center justify-center cursor-pointer select-none">-</button>
+                                <button onClick={() => setTodayExpenses(prev => prev + 500)} className="h-4 w-4 bg-[#0b0f19] text-slate-300 hover:text-white hover:bg-slate-800 text-[10px] rounded flex items-center justify-center cursor-pointer select-none">+</button>
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between bg-[#0b0f19]/40 p-1 px-2 rounded-lg border border-slate-800/60">
+                              <span className="text-[9px] font-mono text-slate-300">Orders</span>
+                              <div className="flex items-center gap-1">
+                                <button onClick={() => setTodayReportOrders(prev => Math.max(0, prev - 1))} className="h-4 w-4 bg-[#0b0f19] text-slate-300 hover:text-white hover:bg-slate-800 text-[10px] rounded flex items-center justify-center cursor-pointer select-none">-</button>
+                                <button onClick={() => setTodayReportOrders(prev => prev + 1)} className="h-4 w-4 bg-[#0b0f19] text-slate-300 hover:text-white hover:bg-slate-800 text-[10px] rounded flex items-center justify-center cursor-pointer select-none">+</button>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-5 gap-1 pt-1">
+                            <div className="flex flex-col items-center bg-[#0b0f19]/20 p-1 rounded-md border border-slate-850">
+                              <span className="text-[7.5px] text-slate-400">Delivered</span>
+                              <div className="flex gap-1 mt-1">
+                                <button onClick={() => setTodayDelivered(prev => Math.max(0, prev - 1))} className="h-3.5 w-3.5 bg-[#0b0f19] text-slate-400 hover:text-white hover:bg-slate-800 text-[8px] rounded flex items-center justify-center cursor-pointer select-none">-</button>
+                                <button onClick={() => setTodayDelivered(prev => prev + 1)} className="h-3.5 w-3.5 bg-[#0b0f19] text-slate-300 hover:text-white hover:bg-slate-800 text-[8px] rounded flex items-center justify-center cursor-pointer select-none">+</button>
+                              </div>
+                            </div>
+                            <div className="flex flex-col items-center bg-[#0b0f19]/20 p-1 rounded-md border border-slate-850">
+                              <span className="text-[7.5px] text-slate-400">Pending</span>
+                              <div className="flex gap-1 mt-1">
+                                <button onClick={() => setTodayPending(prev => Math.max(0, prev - 1))} className="h-3.5 w-3.5 bg-[#0b0f19] text-slate-400 hover:text-white hover:bg-slate-800 text-[8px] rounded flex items-center justify-center cursor-pointer select-none">-</button>
+                                <button onClick={() => setTodayPending(prev => prev + 1)} className="h-3.5 w-3.5 bg-[#0b0f19] text-slate-300 hover:text-white hover:bg-slate-800 text-[8px] rounded flex items-center justify-center cursor-pointer select-none">+</button>
+                              </div>
+                            </div>
+                            <div className="flex flex-col items-center bg-[#0b0f19]/20 p-1 rounded-md border border-slate-850">
+                              <span className="text-[7.5px] text-slate-400">Returned</span>
+                              <div className="flex gap-1 mt-1">
+                                <button onClick={() => setTodayReturned(prev => Math.max(0, prev - 1))} className="h-3.5 w-3.5 bg-[#0b0f19] text-slate-400 hover:text-white hover:bg-slate-800 text-[8px] rounded flex items-center justify-center cursor-pointer select-none">-</button>
+                                <button onClick={() => setTodayReturned(prev => prev + 1)} className="h-3.5 w-3.5 bg-[#0b0f19] text-slate-300 hover:text-white hover:bg-slate-800 text-[8px] rounded flex items-center justify-center cursor-pointer select-none">+</button>
+                              </div>
+                            </div>
+                            <div className="flex flex-col items-center bg-[#0b0f19]/20 p-1 rounded-md border border-slate-850">
+                              <span className="text-[7.5px] text-slate-400">POS.C</span>
+                              <div className="flex gap-1 mt-1">
+                                <button onClick={() => setTodayPosCompleted(prev => Math.max(0, prev - 1))} className="h-3.5 w-3.5 bg-[#0b0f19] text-slate-400 hover:text-white hover:bg-slate-800 text-[8px] rounded flex items-center justify-center cursor-pointer select-none">-</button>
+                                <button onClick={() => setTodayPosCompleted(prev => prev + 1)} className="h-3.5 w-3.5 bg-[#0b0f19] text-slate-300 hover:text-white hover:bg-slate-800 text-[8px] rounded flex items-center justify-center cursor-pointer select-none">+</button>
+                              </div>
+                            </div>
+                            <div className="flex flex-col items-center bg-[#0b0f19]/20 p-1 rounded-md border border-slate-850">
+                              <span className="text-[7.5px] text-slate-400">Online</span>
+                              <div className="flex gap-1 mt-1">
+                                <button onClick={() => setTodayOnline(prev => Math.max(0, prev - 1))} className="h-3.5 w-3.5 bg-[#0b0f19] text-slate-400 hover:text-white hover:bg-slate-800 text-[8px] rounded flex items-center justify-center cursor-pointer select-none">-</button>
+                                <button onClick={() => setTodayOnline(prev => prev + 1)} className="h-3.5 w-3.5 bg-[#0b0f19] text-slate-300 hover:text-white hover:bg-slate-800 text-[8px] rounded flex items-center justify-center cursor-pointer select-none">+</button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
 
                       {/* Interactive testers */}
-                      <div className="mt-8 pt-4 border-t border-slate-800 flex flex-wrap justify-end gap-2">
+                      <div className="mt-6 pt-4 border-t border-slate-800 flex flex-wrap justify-end gap-2 text-white">
                         <button
                           type="button"
                           id="simulate-today-order"
@@ -1601,7 +1788,7 @@ export default function App() {
                       </div>
                     </div>
 
-                    {/* Card 2: This Month */}
+                    {/* Card 2: This Month's Summary */}
                     <div id="dashboard-month-card" className="bg-slate-900/40 backdrop-blur-md border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.1)] rounded-2xl p-6 flex flex-col justify-between h-full text-white">
                       <div>
                         {/* Title and Month Row */}
@@ -1617,7 +1804,7 @@ export default function App() {
                         </div>
 
                         {/* Metrics Grid Row */}
-                        <div className="grid grid-cols-3 gap-3 py-6 text-center border-b border-blue-500/10 mb-5">
+                        <div className="grid grid-cols-3 gap-3 py-4 text-center border-b border-blue-500/10 mb-4">
                           <div className="flex flex-col items-center justify-center space-y-0.5 min-w-0">
                             <span className="text-lg md:text-xl font-mono font-bold text-white whitespace-nowrap truncate">{monthReportOrders}</span>
                             <span className="text-[10px] text-slate-200 font-semibold uppercase tracking-wider whitespace-nowrap truncate">Total Orders</span>
@@ -1629,15 +1816,53 @@ export default function App() {
                             <span className="text-[10px] text-slate-200 font-semibold uppercase tracking-wider whitespace-nowrap truncate">Revenue</span>
                           </div>
                           <div className="flex flex-col items-center justify-center space-y-0.5 min-w-0">
-                            <span className="text-lg md:text-xl font-mono font-bold text-rose-455 whitespace-nowrap truncate">
+                            <span className="text-lg md:text-xl font-mono font-bold text-rose-400 whitespace-nowrap truncate">
                               LKR {monthExpenses.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                             </span>
                             <span className="text-[10px] text-slate-200 font-semibold uppercase tracking-wider whitespace-nowrap truncate">Expenses</span>
                           </div>
                         </div>
 
+                        {/* Extended Financial Health Indicators */}
+                        <div className="grid grid-cols-3 gap-2 bg-[#080b13]/80 border border-slate-850 p-3 rounded-xl mt-3">
+                          <div className="text-center min-w-0">
+                            <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider truncate">Net Profit</div>
+                            <div className={`text-xs font-bold font-mono ${(monthReportRev - monthExpenses) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                              LKR {(monthReportRev - monthExpenses).toLocaleString(undefined, {maximumFractionDigits: 0})}
+                            </div>
+                          </div>
+                          <div className="text-center min-w-0">
+                            <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider truncate">Net Margin</div>
+                            <div className={`text-xs font-bold font-mono ${(monthReportRev > 0 ? ((monthReportRev - monthExpenses) / monthReportRev) * 100 : 0) >= 30 ? "text-emerald-400" : "text-cyan-400"}`}>
+                              {(monthReportRev > 0 ? ((monthReportRev - monthExpenses) / monthReportRev) * 100 : 0).toFixed(1)}%
+                            </div>
+                          </div>
+                          <div className="text-center min-w-0">
+                            <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider truncate">RTO Cost loss</div>
+                            <div className="text-xs font-bold text-rose-400 font-mono">
+                              LKR {(monthReturned * 450).toLocaleString()}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Monthly Progress Goal Tracker */}
+                        <div className="mt-3 bg-[#0a0d16] p-3 rounded-xl border border-slate-850 space-y-1.5">
+                          <div className="flex justify-between items-center text-[10px]">
+                            <span className="text-slate-400 uppercase font-bold tracking-wider flex items-center gap-1">
+                              📊 Monthly Sales Progress ({Math.min(100, Math.round((monthReportRev / 1000000) * 100))}% of LKR 1.0M Goal)
+                            </span>
+                            <span className="font-mono text-emerald-400">Goal: LKR 1,000,000</span>
+                          </div>
+                          <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                            <div 
+                              className="bg-gradient-to-r from-emerald-500 to-teal-400 h-full transition-all duration-500 rounded-full" 
+                              style={{ width: `${Math.min(100, Math.max(0, (monthReportRev / 1000000) * 100))}%` }}
+                            />
+                          </div>
+                        </div>
+
                         {/* Breakdown status indicators */}
-                        <div className="space-y-3">
+                        <div className="space-y-3 mt-4">
                           <div className="flex justify-between items-center">
                             <h4 className="text-[10px] text-white font-bold uppercase tracking-widest">Monthly Status Breakdown</h4>
                             <span className="text-[9px] text-slate-300 font-medium">මාසික තත්ත්වය</span>
@@ -1663,10 +1888,66 @@ export default function App() {
                             </div>
                           </div>
                         </div>
+
+                        {/* Interactive Calibration Controls */}
+                        <div className="mt-4 pt-3 border-t border-slate-800/80 space-y-2">
+                          <div className="flex justify-between items-center text-[10px] text-slate-400">
+                            <span className="font-extrabold uppercase tracking-widest flex items-center gap-1">
+                              ⚙️ Adjust Month's Data (දත්ත සකසන්න)
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-3 gap-2">
+                            <div className="flex items-center justify-between bg-[#0b0f19]/40 p-1 px-2 rounded-lg border border-slate-800/60">
+                              <span className="text-[9px] font-mono text-slate-300">Revenue</span>
+                              <div className="flex items-center gap-1">
+                                <button onClick={() => setMonthReportRev(prev => Math.max(0, prev - 10000))} className="h-4 w-4 bg-[#0b0f19] text-slate-300 hover:text-white hover:bg-slate-800 text-[10px] rounded flex items-center justify-center cursor-pointer select-none">-</button>
+                                <button onClick={() => setMonthReportRev(prev => prev + 10000)} className="h-4 w-4 bg-[#0b0f19] text-slate-300 hover:text-white hover:bg-slate-800 text-[10px] rounded flex items-center justify-center cursor-pointer select-none">+</button>
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between bg-[#0b0f19]/40 p-1 px-2 rounded-lg border border-slate-800/60">
+                              <span className="text-[9px] font-mono text-slate-300">Expenses</span>
+                              <div className="flex items-center gap-1">
+                                <button onClick={() => setMonthExpenses(prev => Math.max(0, prev - 5000))} className="h-4 w-4 bg-[#0b0f19] text-slate-300 hover:text-white hover:bg-slate-800 text-[10px] rounded flex items-center justify-center cursor-pointer select-none">-</button>
+                                <button onClick={() => setMonthExpenses(prev => prev + 5000)} className="h-4 w-4 bg-[#0b0f19] text-slate-300 hover:text-white hover:bg-slate-800 text-[10px] rounded flex items-center justify-center cursor-pointer select-none">+</button>
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between bg-[#0b0f19]/40 p-1 px-2 rounded-lg border border-slate-800/60">
+                              <span className="text-[9px] font-mono text-slate-300">Orders</span>
+                              <div className="flex items-center gap-1">
+                                <button onClick={() => setMonthReportOrders(prev => Math.max(0, prev - 5))} className="h-4 w-4 bg-[#0b0f19] text-slate-300 hover:text-white hover:bg-slate-800 text-[10px] rounded flex items-center justify-center cursor-pointer select-none">-</button>
+                                <button onClick={() => setMonthReportOrders(prev => prev + 5)} className="h-4 w-4 bg-[#0b0f19] text-slate-300 hover:text-white hover:bg-slate-800 text-[10px] rounded flex items-center justify-center cursor-pointer select-none">+</button>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-3 gap-1.5 pt-1">
+                            <div className="flex flex-col items-center bg-[#0b0f19]/20 p-1 rounded-md border border-slate-850">
+                              <span className="text-[7.5px] text-slate-400">Delivered</span>
+                              <div className="flex gap-1 mt-1">
+                                <button onClick={() => setMonthDelivered(prev => Math.max(0, prev - 1))} className="h-3.5 w-3.5 bg-[#0b0f19] text-slate-400 hover:text-white hover:bg-slate-800 text-[8px] rounded flex items-center justify-center cursor-pointer select-none">-</button>
+                                <button onClick={() => setMonthDelivered(prev => prev + 1)} className="h-3.5 w-3.5 bg-[#0b0f19] text-slate-300 hover:text-white hover:bg-slate-800 text-[8px] rounded flex items-center justify-center cursor-pointer select-none">+</button>
+                              </div>
+                            </div>
+                            <div className="flex flex-col items-center bg-[#0b0f19]/20 p-1 rounded-md border border-slate-850">
+                              <span className="text-[7.5px] text-slate-400">Returned</span>
+                              <div className="flex gap-1 mt-1">
+                                <button onClick={() => setMonthReturned(prev => Math.max(0, prev - 1))} className="h-3.5 w-3.5 bg-[#0b0f19] text-slate-400 hover:text-white hover:bg-slate-800 text-[8px] rounded flex items-center justify-center cursor-pointer select-none">-</button>
+                                <button onClick={() => setMonthReturned(prev => prev + 1)} className="h-3.5 w-3.5 bg-[#0b0f19] text-slate-300 hover:text-white hover:bg-slate-800 text-[8px] rounded flex items-center justify-center cursor-pointer select-none">+</button>
+                              </div>
+                            </div>
+                            <div className="flex flex-col items-center bg-[#0b0f19]/20 p-1 rounded-md border border-slate-850">
+                              <span className="text-[7.5px] text-slate-400">POS.C</span>
+                              <div className="flex gap-1 mt-1">
+                                <button onClick={() => setMonthPosCompleted(prev => Math.max(0, prev - 1))} className="h-3.5 w-3.5 bg-[#0b0f19] text-slate-400 hover:text-white hover:bg-slate-800 text-[8px] rounded flex items-center justify-center cursor-pointer select-none">-</button>
+                                <button onClick={() => setMonthPosCompleted(prev => prev + 1)} className="h-3.5 w-3.5 bg-[#0b0f19] text-slate-300 hover:text-white hover:bg-slate-800 text-[8px] rounded flex items-center justify-center cursor-pointer select-none">+</button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
 
                       {/* Interactive testers */}
-                      <div className="mt-8 pt-4 border-t border-slate-800 flex flex-wrap justify-end gap-2">
+                      <div className="mt-6 pt-4 border-t border-slate-800 flex flex-wrap justify-end gap-2 text-white">
                         <button
                           type="button"
                           id="simulate-month-order"
@@ -1751,114 +2032,23 @@ export default function App() {
 
                   </div>
                 </div>
-
-                {/* Right Column: Quick Actions Panel */}
-                <div className="w-full lg:max-w-[260px] lg:w-64 shrink-0 bg-[#0b0f19]/30 border border-slate-800/60 p-3 rounded-xl space-y-3 shadow-md">
-                  <h4 className="text-[10px] font-bold tracking-wider text-slate-500 uppercase select-none">
-                    QUICK ACTIONS
-                  </h4>
-                  
-                  <div className="flex flex-col gap-1">
-                    {/* Create New Order */}
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab("parser")}
-                      className="flex items-center gap-2 w-full p-2 rounded-lg hover:bg-slate-800/40 text-slate-300 hover:text-white text-xs font-semibold transition-all cursor-pointer text-left"
-                    >
-                      <Plus size={13} className="text-slate-400" />
-                      <span>Create New Order</span>
-                    </button>
-
-                    {/* Quick Order Lookup Form */}
-                    <form
-                      onSubmit={(e) => {
-                        e.preventDefault();
-                        if (!quickSearchTerm.trim()) return;
-                        
-                        // Look up order by ID or phone in orders array
-                        const found = orders.find(
-                          (o) =>
-                            o.id.toLowerCase().includes(quickSearchTerm.toLowerCase()) ||
-                            o.customer.phone1.includes(quickSearchTerm) ||
-                            o.customer.name.toLowerCase().includes(quickSearchTerm.toLowerCase())
-                        );
-
-                        if (found) {
-                          setSuccessToast(`🔍 Found Order: ${found.id} for ${found.customer.name} [${found.status}]`);
-                          setActiveTab("ledger");
-                        } else {
-                          setSuccessToast(`❌ Order lookup failed for "${quickSearchTerm}"`);
-                        }
-                        setTimeout(() => setSuccessToast(null), 3500);
-                      }}
-                      className="flex flex-col gap-1.5 p-2 rounded-lg bg-slate-950/20"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Search size={13} className="text-slate-400" />
-                        <span className="text-xs font-semibold text-slate-300">Quick Order Lookup</span>
-                      </div>
-                      <div className="relative flex items-center">
-                        <input
-                          type="text"
-                          value={quickSearchTerm}
-                          onChange={(e) => setQuickSearchTerm(e.target.value)}
-                          placeholder="Search Order ID or Phone..."
-                          className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-[11px] w-full text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500/85 pr-6 font-mono"
-                        />
-                        {quickSearchTerm && (
-                          <button
-                            type="button"
-                            onClick={() => setQuickSearchTerm("")}
-                            className="absolute right-2 text-[10px] text-slate-500 hover:text-white cursor-pointer"
-                          >
-                            ×
-                          </button>
-                        )}
-                      </div>
-                    </form>
-
-                    {/* Generate Courier Manifest */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        // Find pending orders count
-                        const pendingCount = orders.filter(
-                          (o) => o.status === "Pending Check" || o.status === "Approved"
-                        ).length;
-                        
-                        if (pendingCount > 0) {
-                          setSuccessToast(`📦 Generated Courier Manifest for ${pendingCount} pending shipments successfully!`);
-                        } else {
-                          setSuccessToast(`📦 Generated general Courier shipping manifest sheets successfully!`);
-                        }
-                        setTimeout(() => setSuccessToast(null), 3000);
-                      }}
-                      className="flex items-center gap-2 w-full p-2 rounded-lg hover:bg-slate-800/40 text-slate-300 hover:text-white text-xs font-semibold transition-all cursor-pointer text-left"
-                    >
-                      <Printer size={13} className="text-slate-400" />
-                      <span>Generate Courier Manifest</span>
-                    </button>
-
-                    {/* Add New Product */}
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab("products")}
-                      className="flex items-center gap-2 w-full p-2 rounded-lg hover:bg-slate-800/40 text-slate-300 hover:text-white text-xs font-semibold transition-all cursor-pointer text-left"
-                    >
-                      <Package size={13} className="text-slate-400" />
-                      <span>Add New Product</span>
-                    </button>
-                  </div>
-                </div>
-
-              </div>
-            )}
+              )}
 
               {activeTab === "products" && (
                 <ProductsSection 
                   currentTenantId={currentTenantId} 
                   inventory={inventory} 
                   setInventory={setInventory} 
+                />
+              )}
+
+              {activeTab === "enterprise" && (
+                <EnterpriseSuite
+                  orders={orders}
+                  inventory={inventory}
+                  setOrders={setOrders}
+                  setInventory={setInventory}
+                  currentTenantId={currentTenantId}
                 />
               )}
 
@@ -1893,53 +2083,6 @@ export default function App() {
 
               {activeTab === "settings" && (
                 <div className="space-y-6">
-                  {/* Multi-Tenant Switcher */}
-                  <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4 text-white">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h2 className="text-sm font-black uppercase text-cyan-400 tracking-wider flex items-center gap-2">
-                          ⚡ Multi-Tenant Client Registry | <span className="text-xs font-normal text-slate-400">සේවාලාභී ගිණුම් කළමනාකරණය</span>
-                        </h2>
-                        <p className="text-xs text-slate-400 mt-1">
-                          Swap active client portfolios to verify complete multi-tenant database isolation. Orders, stock counts, configurations, and reports exist in strictly isolated memory spaces.
-                        </p>
-                      </div>
-                      <span className="bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 px-2.5 py-1 rounded-full text-[9px] font-extrabold uppercase tracking-widest leading-none">
-                        Isolation Active
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-                      {tenantsList.map((t) => (
-                        <div
-                          key={t.id}
-                          onClick={() => {
-                            setCurrentTenantId(t.id);
-                            setSuccessToast(`Switched Client to: ${t.name} / ගිණුම සක්‍රීය කරන ලදී.`);
-                            setTimeout(() => setSuccessToast(null), 3000);
-                          }}
-                          className={`p-4 rounded-xl border transition-all cursor-pointer select-none space-y-1.5 relative overflow-hidden ${
-                            currentTenantId === t.id
-                              ? "bg-slate-800/80 border-cyan-500/60 shadow-lg shadow-cyan-950/40"
-                              : "bg-slate-950/40 border-slate-800 hover:border-slate-700 hover:bg-slate-900/50"
-                          }`}
-                        >
-                          {currentTenantId === t.id && (
-                            <div className="absolute top-0 right-0 h-2 w-2 rounded-full bg-cyan-400 m-2 animate-ping" />
-                          )}
-                          <div className="flex items-center justify-between">
-                            <span className="text-[9px] font-mono text-slate-500 font-extrabold uppercase">
-                              ID: {t.id}
-                            </span>
-                            <span className="text-[10px] text-slate-400">{t.region}</span>
-                          </div>
-                          <h4 className="text-xs font-black text-slate-100">{t.name}</h4>
-                          <p className="text-[10px] text-slate-450 font-medium font-mono">{t.email}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
                   {/* General Configuration Form */}
                   <div className="bg-white p-6 rounded-2xl border border-slate-150 shadow-sm space-y-6">
                     <div>
@@ -2035,6 +2178,52 @@ export default function App() {
                             <p className="text-[10px] text-slate-450 leading-relaxed font-medium">
                               Any order with RTO metrics surpassing this target gets automatically held for double confirmation or manual calls.
                             </p>
+                          </div>
+
+                          {/* Corporate Identity Profile */}
+                          <div className="space-y-4 pt-4 border-t border-slate-100">
+                            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider pb-1 flex items-center gap-1.5 font-sans">
+                              🏢 Corporate Identity / ව්‍යාපාරික තොරතුරු
+                            </h3>
+
+                            <div className="space-y-1.5">
+                              <label className="text-xs font-bold text-slate-600 block">Business Owner (අයිතිකරු / කළමනාකරු)</label>
+                              <input 
+                                type="text" 
+                                id="business-owner-input"
+                                value={businessOwner} 
+                                onChange={(e) => setBusinessOwner(e.target.value)}
+                                className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:border-blue-600 outline-none transition-all font-medium text-slate-750"
+                                placeholder="e.g. S. Kaumina"
+                                required
+                              />
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <label className="text-xs font-bold text-slate-600 block">Registered Address (ලියාපදිංචි ලිපිනය)</label>
+                              <input 
+                                type="text" 
+                                id="business-address-input"
+                                value={businessAddress} 
+                                onChange={(e) => setBusinessAddress(e.target.value)}
+                                className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:border-blue-600 outline-none transition-all font-medium text-slate-750"
+                                placeholder="e.g. No. 100, High Level Rd, Colombo"
+                                required
+                              />
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <label className="text-xs font-bold text-slate-600 block">Business Hotline (දුරකථන අංකය)</label>
+                              <input 
+                                type="text" 
+                                id="business-phone-input"
+                                value={businessPhone} 
+                                onChange={(e) => setBusinessPhone(e.target.value)}
+                                className="w-full text-xs p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:border-blue-600 outline-none transition-all font-bold font-mono text-slate-755"
+                                placeholder="e.g. 011-2345678"
+                                required
+                              />
+                            </div>
                           </div>
                         </div>
 
@@ -2376,6 +2565,192 @@ export default function App() {
                 >
                   <span>🔴 Confirm Reset</span>
                 </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Quick Access Toolbar Modal */}
+      <AnimatePresence>
+        {isQuickActionsOpen && (
+          <div className="fixed inset-0 z-55 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.7 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsQuickActionsOpen(false)}
+              className="absolute inset-0 bg-slate-950/80 backdrop-blur-xs"
+            />
+
+            {/* Modal Body */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-slate-900 border border-cyan-500/30 rounded-3xl shadow-[0_0_50px_rgba(6,182,212,0.15)] max-w-md w-full relative z-10 overflow-hidden text-white p-6"
+            >
+              {/* Close Button Top-Right */}
+              <button 
+                onClick={() => setIsQuickActionsOpen(false)} 
+                className="absolute top-4 right-4 text-slate-400 hover:text-white transition cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+
+              <div className="flex items-center gap-3 mb-5 border-b border-slate-800 pb-4">
+                <div className="h-10 w-10 flex items-center justify-center rounded-xl bg-cyan-950/50 border border-cyan-500/30 text-cyan-400">
+                  <Zap size={18} className="animate-pulse" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-widest flex items-center gap-2">
+                    Quick Operations Command (⚡)
+                  </h3>
+                   <p className="text-[10px] text-slate-400 font-medium">වේගවත් මෙහෙයුම් කේන්ද්‍රය - LakNexus SaaS</p>
+                </div>
+              </div>
+
+              {/* QUICK ACTIONS list */}
+              <div className="space-y-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab("parser");
+                    setIsQuickActionsOpen(false);
+                  }}
+                  className="flex items-center justify-between w-full h-14 p-4 rounded-xl bg-slate-950/40 border border-slate-800 hover:border-cyan-500/40 hover:bg-slate-800/40 transition-all cursor-pointer text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <Plus size={16} className="text-cyan-400" />
+                    <div>
+                      <div className="text-xs font-bold text-slate-200">Create New Order</div>
+                      <div className="text-[9px] text-slate-500">නව ඇණවුමක් ඇතුළත් කරන්න (Order Parser)</div>
+                    </div>
+                  </div>
+                  <ArrowUpRight size={14} className="text-slate-500" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab("products");
+                    setIsQuickActionsOpen(false);
+                  }}
+                  className="flex items-center justify-between w-full h-14 p-4 rounded-xl bg-slate-950/40 border border-slate-800 hover:border-cyan-500/40 hover:bg-slate-800/40 transition-all cursor-pointer text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <Package size={16} className="text-cyan-400" />
+                    <div>
+                      <div className="text-xs font-bold text-slate-200">Add New Product SKU</div>
+                      <div className="text-[9px] text-slate-500">නව භාණ්ඩයක් ගබඩාවට එක් කරන්න</div>
+                    </div>
+                  </div>
+                  <ArrowUpRight size={14} className="text-slate-505" />
+                </button>
+
+                {/* Quick Order Lookup Form embedded inside actions */}
+                <div
+                  className="p-4 rounded-xl bg-slate-950/65 border border-slate-800"
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <Search size={14} className="text-cyan-400" />
+                    <span className="text-xs font-semibold text-slate-300">Quick Order Lookup (ඇණවුම් සෙවුම)</span>
+                  </div>
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      if (!quickSearchTerm.trim()) return;
+                      
+                      const found = orders.find(
+                        (o) =>
+                          o.id.toLowerCase().includes(quickSearchTerm.toLowerCase()) ||
+                          o.customer.phone1.includes(quickSearchTerm) ||
+                          o.customer.name.toLowerCase().includes(quickSearchTerm.toLowerCase())
+                      );
+
+                      setIsQuickActionsOpen(false);
+                      if (found) {
+                        setSuccessToast(`Found Order: ${found.id} for ${found.customer.name} [${found.status}]`);
+                        setActiveTab("ledger");
+                      } else {
+                        setSuccessToast(`No localized matching ledger order for "${quickSearchTerm}"`);
+                      }
+                      setTimeout(() => setSuccessToast(null), 3500);
+                    }}
+                    className="relative flex items-center"
+                  >
+                    <input
+                      type="text"
+                      value={quickSearchTerm}
+                      onChange={(e) => setQuickSearchTerm(e.target.value)}
+                      placeholder="Type Order ID, Name, or Phone..."
+                      className="bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs w-full text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500/65 pr-8 font-mono"
+                    />
+                    {quickSearchTerm && (
+                      <button
+                        type="button"
+                        onClick={() => setQuickSearchTerm("")}
+                        className="absolute right-3 text-xs text-slate-500 hover:text-white cursor-pointer"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </form>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const pendingCount = orders.filter(
+                      (o) => o.status === "Pending Check" || o.status === "Approved"
+                    ).length;
+                    
+                    setIsQuickActionsOpen(false);
+                    if (pendingCount > 0) {
+                      setSuccessToast(`Generated Courier Manifest for ${pendingCount} pending shipments successfully!`);
+                    } else {
+                      setSuccessToast(`Generated general Courier shipping manifest sheets successfully!`);
+                    }
+                    setTimeout(() => setSuccessToast(null), 3000);
+                  }}
+                  className="flex items-center justify-between w-full h-14 p-4 rounded-xl bg-slate-950/40 border border-slate-800 hover:border-cyan-500/40 hover:bg-slate-800/40 transition-all cursor-pointer text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <Printer size={16} className="text-cyan-400" />
+                    <div>
+                      <div className="text-xs font-bold text-slate-200">Generate Courier Manifest</div>
+                      <div className="text-[9px] text-slate-500">කුරියර් පත්‍රිකා මුද්‍රණය</div>
+                    </div>
+                  </div>
+                  <ArrowUpRight size={14} className="text-slate-505" />
+                </button>
+
+                {/* Quick Switch Client shortcuts */}
+                <div className="p-3 bg-slate-950/30 rounded-xl border border-slate-800/60 space-y-2">
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Active Client Portfolio (සේවාලාභියා)</div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {tenantsList.map((t) => (
+                      <button
+                        type="button"
+                        key={t.id}
+                        onClick={() => {
+                          setCurrentTenantId(t.id);
+                          setIsQuickActionsOpen(false);
+                          setSuccessToast(`Switched Client to: ${t.name}`);
+                          setTimeout(() => setSuccessToast(null), 3000);
+                        }}
+                        className={`text-[9px] font-black uppercase rounded-lg py-1.5 px-1 truncate text-center border transition cursor-pointer ${
+                          currentTenantId === t.id
+                            ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/60"
+                            : "bg-slate-950/60 text-slate-400 border-slate-850 hover:text-white"
+                        }`}
+                      >
+                        {t.name.split(" ")[0]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             </motion.div>
           </div>

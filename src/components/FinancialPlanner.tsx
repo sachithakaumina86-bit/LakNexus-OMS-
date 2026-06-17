@@ -216,88 +216,86 @@ export default function FinancialPlanner() {
   const getCfoAdvices = (): AdviceItem[] => {
     const arr: AdviceItem[] = [];
 
-    // 1. Dynamic Ad-Spend / Marketing Advice (Scale-Up Ad Budget)
-    if (cfoRoas < 3.0) {
+    // Note 1 (Scale-Up Ad Budget): The ROAS pill (e.g., 14.41x) must calculate and dynamically render as: Sales Revenue / Ad Spend
+    const liveRoas = cfoAdSpend > 0 ? cfoRevenue / cfoAdSpend : 0;
+    const roasPillText = liveRoas.toFixed(2) + "x";
+
+    if (liveRoas < 3.0) {
       arr.push({
-        title: "ROAS පිරිපහදු කිරීම (Refine Ad ROAS)",
+        title: "ROAS පිරිපහදු කිරීම (Refine Ad ROAS - Note 1)",
         text: (
           <>
-            ඔබගේ ROAS අගය <span className="text-blue-300 font-extrabold font-mono bg-blue-950/40 px-1.5 py-0.5 rounded border border-blue-500/20">{cfoRoas.toFixed(2)}x</span> කි. එය අවම මට්ටමට (3x) වඩා අඩු බැවින්, ad targeting පිරිපහදු කරන්න. වැඩිපුරම ඇණවුම් ලැබෙන (High-converting) පළාත්/නගර ඉලක්ක කර දැන්වීම් පළ කරන්න.
+            පිටු මිලදී ගැනීම් සඳහා වන ඔබගේ ROAS අගය <span className="text-blue-350 font-extrabold font-mono bg-blue-950/40 px-1.5 py-0.5 rounded border border-blue-500/20">{roasPillText}</span> කි (මුළු ආදායම රු. {cfoRevenue.toLocaleString()} / ad spend රු. {cfoAdSpend.toLocaleString()}). එය ශ්‍රී ලංකාවේ අවම ROAS සීමාව වන (3x) ට වඩා අඩු බැවින්, ad targeting පිරිපහදු කර, ad-cost (CAC) අඩු කරගැනීමට උත්සාහ කරන්න.
           </>
         ),
-        badge: "AD OPTIMIZATION • " + cfoRoas.toFixed(2) + "x",
+        badge: "AD OPTIMIZATION • " + roasPillText,
         color: "blue"
       });
     } else if (cfoAdSpend > 0 && (cfoAdSpend / cfoRevenue) > 0.25) {
       arr.push({
-        title: "දැන්වීම් වියදම පාලනය (Control Ad Spend)",
+        title: "දැන්වීම් වියදම පාලනය (Control Ad Spend - Note 1)",
         text: (
           <>
-            දැනට ඔබගේ ROAS අගය <span className="text-blue-300 font-extrabold font-mono bg-blue-950/40 px-1.5 py-0.5 rounded border border-blue-500/20">{cfoRoas.toFixed(2)}x</span> වන අතර මුළු ආදායමෙන් <span className="text-blue-300 font-extrabold font-mono bg-blue-950/40 px-1.5 py-0.5 rounded border border-blue-500/20">{Math.round((cfoAdSpend / cfoRevenue) * 100)}%</span>ක්ම Ad spend සඳහා වැයවේ. TikTok / Facebook ad set optimization (CBO) m_CBO මඟින් එක් ඇණවුමක ad-cost (CAC) එක <span className="text-blue-300 font-extrabold font-mono bg-blue-950/40 px-1.5 py-0.5 rounded border border-blue-500/20">රු. 600</span> ට වඩා අඩු කරගැනීමට උත්සාහ කරන්න.
+            දැනට ඔබගේ ROAS අගය <span className="text-blue-350 font-extrabold font-mono bg-blue-950/40 px-1.5 py-0.5 rounded border border-blue-500/20">{roasPillText}</span> වන අතර මුළු ආදායමෙන් <span className="text-blue-350 font-extrabold font-mono bg-blue-950/40 px-1.5 py-0.5 rounded border border-blue-500/20">{Math.round((cfoAdSpend / cfoRevenue) * 100)}%</span>ක්ම Ad spend සඳහා වැයවේ. ad performance පරිමාණය (Scale-Up) කිරීම හෝ වෙනත් creative formats අත්හදා බලන්න.
           </>
         ),
-        badge: "BUDGET CONTROL • " + cfoRoas.toFixed(2) + "x",
+        badge: "BUDGET CONTROL • " + roasPillText,
         color: "blue"
       });
     } else {
       arr.push({
-        title: "ප්‍රචාරණ පරිමාණය වැඩි කිරීම (Scale-Up Ad Budget)",
+        title: "ප්‍රචාරණ පරිමාණය වැඩි කිරීම (Scale-Up Ad Budget - Note 1)",
         text: (
           <>
-            ඔබගේ ප්‍රචාරණ ආපසු ලැබීම (ROAS) <span className="text-blue-300 font-extrabold font-mono bg-blue-950/40 px-1.5 py-0.5 rounded border border-blue-500/20">{cfoRoas.toFixed(2)}x</span> මට්ටමක ඉතා හොඳින් පවතී. සාර්ථක ad creatives වල දෛනික බජට් එක <span className="text-blue-300 font-extrabold font-mono bg-blue-950/40 px-1.5 py-0.5 rounded border border-blue-500/20">20%</span> බැගින් පරිමාණය (Scale up) කිරීමට පියවර ගන්න.
+            ඔබගේ ප්‍රචාරණ ආපසු ලැබීම (ROAS) <span className="text-blue-350 font-extrabold font-mono bg-blue-950/40 px-1.5 py-0.5 rounded border border-blue-500/20">{roasPillText}</span> මට්ටමක පවතී. සාර්ථක ad creatives වල ਬਜට් එක පරිමාණය (Scale up) කිරීමට පියවර ගන්න.
           </>
         ),
-        badge: "SCALE UP • " + cfoRoas.toFixed(2) + "x",
+        badge: "SCALE UP • " + roasPillText,
         color: "blue"
       });
     }
 
-    // 2. Dynamic RTO / Shipping Advice (Minimize RTO Loss)
-    if (cfoRtoOrders > 12) {
-      arr.push({
-        title: "RTO කුරියර් අලාභය අවම කිරීම (Minimize RTO Loss)",
-        text: (
-          <>
-            Returned (RTO) ඇණවුම් <span className="text-emerald-300 font-extrabold font-mono bg-emerald-950/40 px-1.5 py-0.5 rounded border border-emerald-500/20">{cfoRtoOrders}</span> නිසා සිදු වූ කුරියර් අලාභය <span className="text-emerald-300 font-extrabold font-mono bg-emerald-950/40 px-1.5 py-0.5 rounded border border-emerald-500/20">රු. {rtoCourierLoss.toLocaleString()}</span> කි. ඇණවුම යැවීමට පෙර පාරිභෝගිකයාගේ සම්බන්ධතා අංකය නිවැරදි දැයි පරීක්ෂා කර, දුරකථනයෙන් ඩබල්-කන්ෆර්ම් ලබාගන්න.
-          </>
-        ),
-        badge: "RTO LOSS • " + cfoRtoOrders + " RET / රු. " + rtoCourierLoss.toLocaleString(),
-        color: "emerald"
-      });
-    } else {
-      arr.push({
-        title: "RTO කුරියර් අලාභය අවම කිරීම (Minimize RTO Loss)",
-        text: (
-          <>
-            Returned (RTO) ඇණවුම් <span className="text-emerald-300 font-extrabold font-mono bg-emerald-950/40 px-1.5 py-0.5 rounded border border-emerald-500/20">{cfoRtoOrders}</span> ක් සඳහා RTO පාඩුව (<span className="text-emerald-300 font-extrabold font-mono bg-emerald-950/40 px-1.5 py-0.5 rounded border border-emerald-500/20">රු. {rtoCourierLoss.toLocaleString()}</span>) පාලනය කළ හැකි සීමාවක පවතී. කෙසේ වෙතත්, RTO තවදුරටත් අවම කිරීමට COD ඇණවුම් යැවීමේදී පාරිභෝගිකයාට tracking link එක WhatsApp මඟින් ස්වයංක්‍රීයව යැවීමට කටයුතු කරන්න.
-          </>
-        ),
-        badge: "RTO MITIGATION • " + cfoRtoOrders + " RET",
-        color: "emerald"
-      });
-    }
+    // Note 2 (Minimize RTO Loss): The Returned Orders pill (e.g., 150) must sync directly with the "Returned / RTO Orders" input field value.
+    // The total currency loss pill (e.g., රු. 67,500) must calculate and display dynamically as: Returned / RTO Orders * Shipping Loss per Return Slider Value.
+    const liveRtoLoss = cfoRtoOrders * cfoRtoLossPerOrder;
+    const rtoLossPillText = "රු. " + liveRtoLoss.toLocaleString();
+    
+    arr.push({
+      title: "RTO කුරියර් අලාභය අවම කිරීම (Minimize RTO Loss - Note 2)",
+      text: (
+        <>
+          Returned (RTO) ඇණවුම් ප්‍රමාණය <span className="text-emerald-300 font-extrabold font-mono bg-emerald-950/40 px-1.5 py-0.5 rounded border border-emerald-500/20">{cfoRtoOrders}</span> නිසා සිදු වූ කුරියර් අලාභය <span className="text-emerald-300 font-extrabold font-mono bg-emerald-950/40 px-1.5 py-0.5 rounded border border-emerald-500/20">{rtoLossPillText}</span> කි (Slider Loss value: රු. {cfoRtoLossPerOrder}). ඇණවුම යැවීමට පෙර පාරිභෝගිකයාගේ සම්බන්ධතා අංකය නිවැරදි දැයි පරීක්ෂා කර, දුරකථනයෙන් ඩබල්-කන්ෆර්ම් ලබාගන්න.
+        </>
+      ),
+      badge: "RTO LOSS • " + rtoLossPillText,
+      color: "emerald"
+    });
 
-    // 3. Dynamic Profit Margin / Cash-Flow Advice (Boost Gross Margin)
-    if (cfoNetProfit < 0 || cfoNetProfitMargin < 12) {
+    // Note 3 (Boost Gross Margin): The Net Profit Margin pill (e.g., -123.5%) must compute and display dynamically using the live formula: (Net Profit / Sales Revenue) * 100
+    const liveNetProfit = cfoRevenue - cfoProductCost - cfoAdSpend - cfoCourierCost - liveRtoLoss;
+    const liveNetProfitMargin = cfoRevenue > 0 ? (liveNetProfit / cfoRevenue) * 100 : 0;
+    const marginPillText = liveNetProfitMargin.toFixed(1) + "%";
+
+    if (liveNetProfitMargin < 12) {
       arr.push({
-        title: "භාණ්ඩ ලාභාංශය ඉහළ නැංවීම (Boost Gross Margin)",
+        title: "භාණ්ඩ ලාභාංශය ඉහළ නැංවීම (Boost Gross Margin - Note 3)",
         text: (
           <>
-            ඔබගේ ශුද්ධ ලාභාංශය (<span className="text-fuchsia-300 font-extrabold font-mono bg-fuchsia-950/40 px-1.5 py-0.5 rounded border border-fuchsia-500/20">{cfoNetProfitMargin.toFixed(1)}%</span>) අඩු මට්ටමක පවතී. Unit Cost එක අඩු කරගැනීම සඳහා තොග වශයෙන් භාණ්ඩ වැඩි ප්‍රමාණයක් (Bulk buying) සිදුකරන්න, නැතහොත් භාණ්ඩයේ විකුණුම් මිල සාධාරණ ලෙස ඉහළ දමන්න.
+            ශුද්ධ ලාභය <span className="text-fuchsia-300 font-extrabold font-mono bg-fuchsia-950/40 px-1.5 py-0.5 rounded border border-fuchsia-500/20">රු. {liveNetProfit.toLocaleString()}</span> සහ ශුද්ධ ලාභාංශය (<span className="text-fuchsia-300 font-extrabold font-mono bg-fuchsia-950/40 px-1.5 py-0.5 rounded border border-fuchsia-500/20">{marginPillText}</span>) අඩු මට්ටමක පවතී. Unit Cost එක අඩු කරගැනීමට උත්සාහ කරන්න, නැතහොත් භාණ්ඩයේ විකුණුම් මිල සාධාරණ ලෙස ඉහළ දමන්න.
           </>
         ),
-        badge: "PRICING POWER • " + cfoNetProfitMargin.toFixed(1) + "%",
+        badge: "PRICING POWER • " + marginPillText,
         color: "fuchsia"
       });
     } else {
       arr.push({
-        title: "භාණ්ඩ ලාභාංශය ඉහළ නැංවීම (Boost Gross Margin)",
+        title: "භාණ්ඩ ලාභාංශය ඉහළ නැංවීම (Boost Gross Margin - Note 3)",
         text: (
           <>
-            <span className="text-fuchsia-300 font-extrabold font-mono bg-fuchsia-950/40 px-1.5 py-0.5 rounded border border-fuchsia-500/20">රු. {cfoNetProfit.toLocaleString()}</span> ක ශුද්ධ ලාභය සහ ශුද්ධ ලාභාංශය (<span className="text-fuchsia-300 font-extrabold font-mono bg-fuchsia-950/40 px-1.5 py-0.5 rounded border border-fuchsia-500/20">{cfoNetProfitMargin.toFixed(1)}%</span>) ඉතා සාර්ථකයි. මෙම ලාභයෙන් කොටසක් නැවත වැඩියෙන්ම විකිණෙන භාණ්ඩවල තොග රැස් කිරීමට සහ Cash-flow ස්ථායීව තබාගැනීමට ලංකාවේ බැංකු ගිණුමක වෙන් කර තබන්න.
+            ශුද්ධ ලාභය <span className="text-fuchsia-300 font-extrabold font-mono bg-fuchsia-950/40 px-1.5 py-0.5 rounded border border-fuchsia-500/20">රු. {liveNetProfit.toLocaleString()}</span> සහ ශුද්ධ ලාභාංශය (<span className="text-fuchsia-300 font-extrabold font-mono bg-fuchsia-950/40 px-1.5 py-0.5 rounded border border-fuchsia-500/20">{marginPillText}</span>) ඉතා සාර්ථකයි. මෙම ලාභයෙන් කොටසක් නැවත වැඩියෙන්ම විකිණෙන භාණ්ඩවල තොග රැස් කිරීමට සහ Cash-flow ස්ථායීව තබාගැනීමට ලංකාවේ බැංකු ගිණුමක වෙන් කර තබන්න.
           </>
         ),
-        badge: "CAPITAL ALLOCATION • " + cfoNetProfitMargin.toFixed(1) + "%",
+        badge: "CAPITAL ALLOCATION • " + marginPillText,
         color: "fuchsia"
       });
     }
@@ -700,61 +698,60 @@ export default function FinancialPlanner() {
               </div>
 
               {/* CFO Audit Statement / මූල්‍ය අවසාන විග්‍රහය */}
-              <div className="bg-white p-6 rounded-2xl border border-slate-150 shadow-sm space-y-4 w-full">
+              <div className="bg-white p-6 rounded-2xl border border-slate-150 shadow-sm space-y-5 w-full">
                 <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
                   CFO Audit Statement / මූල්‍ය අවසාන විග්‍රහය
                 </h4>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Total Revenue */}
-                  <div className="p-4 rounded-xl border border-blue-500/80 bg-[#0b0f19]/90 shadow-[0_0_15px_rgba(59,130,246,0.15)] flex flex-col justify-between transition-all duration-300">
-                    <span className="text-[10px] font-bold text-slate-300 dark:text-slate-200 uppercase block">Total Revenue / මුළු ආදායම</span>
-                    <span className="text-xl font-mono font-extrabold text-blue-400 mt-1 whitespace-nowrap truncate">LKR {cfoRevenue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                  <div className="p-4 rounded-xl border border-blue-500/80 bg-[#080d1a] shadow-md flex flex-col justify-between hover:scale-[1.01] hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] transition-all duration-300 cursor-pointer">
+                    <span className="text-[10px] font-semibold font-mono tracking-wider text-slate-400 uppercase block">Total Revenue / මුළු ආදායම</span>
+                    <span className="text-lg md:text-xl font-mono font-extrabold text-blue-400 mt-1 whitespace-nowrap truncate">LKR {cfoRevenue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                    <span className="text-[9px] text-slate-400 font-medium leading-normal block border-t border-slate-800/60 pt-1 mt-2">Gross earnings generated before any cost subtractions</span>
                   </div>
 
                   {/* COGS */}
-                  <div className="p-4 rounded-xl border border-amber-500/80 bg-[#0b0f19]/90 shadow-[0_0_15px_rgba(245,158,11,0.15)] flex flex-col justify-between transition-all duration-300">
-                    <span className="text-[10px] font-bold text-slate-300 dark:text-slate-200 uppercase block">Cost of Goods / COGS</span>
-                    <span className="text-xl font-mono font-extrabold text-amber-400 mt-1 whitespace-nowrap truncate">LKR {cfoProductCost.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                  <div className="p-4 rounded-xl border border-amber-500/80 bg-[#080d1a] shadow-md flex flex-col justify-between hover:scale-[1.01] hover:shadow-[0_0_15px_rgba(245,158,11,0.15)] transition-all duration-300 cursor-pointer">
+                    <span className="text-[10px] font-semibold font-mono tracking-wider text-slate-400 uppercase block">Cost of Goods / COGS</span>
+                    <span className="text-lg md:text-xl font-mono font-extrabold text-amber-400 mt-1 whitespace-nowrap truncate">LKR {cfoProductCost.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                    <span className="text-[9px] text-slate-400 font-medium leading-normal block border-t border-slate-800/60 pt-1 mt-2">Sourcing expenditure on physical product stocks</span>
                   </div>
 
                   {/* Total Marketing */}
-                  <div className="p-4 rounded-xl border border-pink-500/80 bg-[#0b0f19]/90 shadow-[0_0_15px_rgba(236,72,153,0.15)] flex flex-col justify-between transition-all duration-300">
-                    <span className="text-[10px] font-bold text-slate-300 dark:text-slate-200 uppercase block">Marketing Spend / දැන්වීම්</span>
-                    <span className="text-xl font-mono font-extrabold text-pink-400 mt-1 whitespace-nowrap truncate">LKR {cfoAdSpend.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                  <div className="p-4 rounded-xl border border-pink-500/80 bg-[#080d1a] shadow-md flex flex-col justify-between hover:scale-[1.01] hover:shadow-[0_0_15px_rgba(236,72,153,0.15)] transition-all duration-300 cursor-pointer">
+                    <span className="text-[10px] font-semibold font-mono tracking-wider text-slate-400 uppercase block">Marketing Spend / දැන්වීම්</span>
+                    <span className="text-lg md:text-xl font-mono font-extrabold text-pink-400 mt-1 whitespace-nowrap truncate">LKR {cfoAdSpend.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                    <span className="text-[9px] text-slate-400 font-medium leading-normal block border-t border-slate-800/60 pt-1 mt-2">Paid Facebook/TikTok ads campaign cost allocation</span>
                   </div>
-                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-slate-100 dark:border-slate-800 pt-4">
                   {/* Return Loss */}
-                  <div className="p-4 rounded-xl border border-red-500/80 bg-[#0b0f19]/90 shadow-[0_0_15px_rgba(239,68,68,0.15)] flex flex-col justify-between transition-all duration-300">
-                    <span className="text-[10px] font-bold text-slate-300 dark:text-slate-200 uppercase block">
-                      <span>RTO Loss / කුරියර් පාඩුව</span>
-                    </span>
-                    <span className="text-xl font-mono font-extrabold text-red-400 mt-1 whitespace-nowrap truncate">LKR {rtoCourierLoss.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
-                    <span className="text-[9px] text-slate-400 dark:text-slate-400 font-medium block mt-1">
-                      {cfoRtoOrders} returns @ LKR {(cfoCourierCost > 0 && cfoCourierCost < 1500 ? cfoCourierCost : (cfoRtoLossPerOrder || 380)).toLocaleString()}
+                  <div className="p-4 rounded-xl border border-red-500/80 bg-[#080d1a] shadow-md flex flex-col justify-between hover:scale-[1.01] hover:shadow-[0_0_15px_rgba(239,68,68,0.15)] transition-all duration-300 cursor-pointer">
+                    <span className="text-[10px] font-semibold font-mono tracking-wider text-slate-400 uppercase block">RTO Loss / කුරියර් පාඩුව</span>
+                    <span className="text-lg md:text-xl font-mono font-extrabold text-red-400 mt-1 whitespace-nowrap truncate">LKR {rtoCourierLoss.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                    <span className="text-[9px] text-slate-400 font-medium leading-normal block border-t border-slate-800/60 pt-1 mt-2">
+                      {cfoRtoOrders} returns @ LKR {(cfoCourierCost > 0 && cfoCourierCost < 1500 ? cfoCourierCost : (cfoRtoLossPerOrder || 380)).toLocaleString()} average
                     </span>
                   </div>
 
                   {/* Net Profit */}
-                  <div className={`p-4 rounded-xl border flex flex-col justify-between transition-all duration-300 ${
+                  <div className={`p-4 rounded-xl border shadow-md flex flex-col justify-between transition-all duration-300 hover:scale-[1.01] cursor-pointer ${
                     cfoNetProfit >= 0 
-                      ? "border-emerald-500/80 bg-[#0b0f19]/90 shadow-[0_0_15px_rgba(16,185,129,0.15)]" 
-                      : "border-red-500/80 bg-[#0b0f19]/90 shadow-[0_0_15px_rgba(239,68,68,0.15)]"
+                      ? "border-emerald-500/80 bg-[#080d1a] hover:shadow-[0_0_15px_rgba(16,185,129,0.15)]" 
+                      : "border-red-500/80 bg-[#080d1a] hover:shadow-[0_0_15px_rgba(239,68,68,0.15)]"
                   }`}>
-                    <span className="text-[10px] font-bold text-slate-300 dark:text-slate-200 uppercase block">Net Profit / ශුද්ධ ලාභය</span>
-                    <span className={`text-xl font-mono font-extrabold mt-1 whitespace-nowrap truncate ${cfoNetProfit >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                    <span className="text-[10px] font-semibold font-mono tracking-wider text-slate-400 uppercase block">Net Profit / ශුද්ධ ලාභය</span>
+                    <span className={`text-lg md:text-xl font-mono font-extrabold mt-1 whitespace-nowrap truncate ${cfoNetProfit >= 0 ? "text-emerald-400" : "text-red-400"}`}>
                       LKR {cfoNetProfit.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                     </span>
-                    <span className="text-[9px] text-slate-400 dark:text-slate-400 font-semibold block mt-1">{cfoNetProfitMargin.toFixed(1)}% net profit margin</span>
+                    <span className="text-[9px] text-slate-400 font-medium leading-normal block border-t border-slate-800/60 pt-1 mt-2">{cfoNetProfitMargin.toFixed(2)}% Net Margin efficiency rating</span>
                   </div>
 
                   {/* ROAS GAUGE */}
-                  <div className="p-4 rounded-xl border border-cyan-500/80 bg-[#0b0f19]/90 shadow-[0_0_15px_rgba(6,182,212,0.15)] flex flex-col justify-between transition-all duration-300">
-                    <span className="text-[10px] font-bold text-slate-300 dark:text-slate-200 uppercase block">Returns On Ad Spend / ROAS</span>
-                    <span className="text-xl font-mono font-extrabold text-cyan-400 mt-1 whitespace-nowrap truncate">{cfoRoas.toFixed(2)}x</span>
-                    <span className="text-[9px] text-slate-400 dark:text-slate-400 font-bold block mt-1">Target is above 3.0x threshold</span>
+                  <div className="p-4 rounded-xl border border-cyan-500/80 bg-[#080d1a] shadow-md flex flex-col justify-between hover:scale-[1.01] hover:shadow-[0_0_15px_rgba(6,182,212,0.15)] transition-all duration-300 cursor-pointer">
+                    <span className="text-[10px] font-semibold font-mono tracking-wider text-slate-400 uppercase block">Returns On Ad Spend / ROAS</span>
+                    <span className="text-lg md:text-xl font-mono font-extrabold text-cyan-400 mt-1 whitespace-nowrap truncate">{cfoRoas.toFixed(2)}x</span>
+                    <span className="text-[9px] text-slate-400 font-medium leading-normal block border-t border-slate-800/60 pt-1 mt-2">Target threshold is above 3.00x critical bar</span>
                   </div>
                 </div>
               </div>

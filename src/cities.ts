@@ -274,7 +274,7 @@ export function getStandardizedCourierAddress(
       if (bMatch) {
         housePart = bMatch;
       } else {
-        housePart = "No/House Name";
+        housePart = "";
       }
     }
   }
@@ -286,11 +286,15 @@ export function getStandardizedCourierAddress(
   if (sMatch) {
     streetPart = sMatch;
   } else {
-    const remParts = segments.filter(s => s !== housePart && s.toLowerCase() !== cCity.toLowerCase() && s.toLowerCase() !== cDistrict.toLowerCase());
+    const remParts = segments.filter(
+      s => s !== housePart && 
+      s.toLowerCase() !== cCity.toLowerCase() && 
+      s.toLowerCase() !== cDistrict.toLowerCase()
+    );
     if (remParts.length > 0) {
       streetPart = remParts[0];
     } else {
-      streetPart = "Street Name";
+      streetPart = "";
     }
   }
 
@@ -319,5 +323,23 @@ export function getStandardizedCourierAddress(
   const fCity = clean(cCity);
   const fDistrict = clean(cDistrict);
 
-  return `${fHouse}, ${fStreet}, ${fVillage}, ${fCity}, ${fDistrict}`;
+  // Build the list of components that are valid (non-empty, non-placeholder and not duplicated)
+  const parts: string[] = [];
+  if (fHouse && fHouse !== "No/House Name") {
+    parts.push(fHouse);
+  }
+  if (fStreet && fStreet !== "Street Name" && fStreet.toLowerCase() !== fHouse.toLowerCase()) {
+    parts.push(fStreet);
+  }
+  if (fVillage && fVillage.toLowerCase() !== fStreet.toLowerCase() && fVillage.toLowerCase() !== fCity.toLowerCase()) {
+    parts.push(fVillage);
+  }
+  if (fCity) {
+    parts.push(fCity);
+  }
+  if (fDistrict && fDistrict.toLowerCase() !== fCity.toLowerCase()) {
+    parts.push(fDistrict);
+  }
+
+  return parts.join(", ");
 }
