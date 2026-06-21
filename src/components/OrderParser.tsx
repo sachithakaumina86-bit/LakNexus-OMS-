@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { ScrapedOrder, OrderItem, CustomerDetails } from "../types";
 import { lookupCity, getStandardizedCourierAddress } from "../cities";
+import ManualOrderForm from "./ManualOrderForm";
 
 // High-quality Sri Lankan real presets for WhatsApp, Singlish, and pure Sinhala script transcriptions
 const SAMPLE_PRESETS = [
@@ -25,9 +26,11 @@ const SAMPLE_PRESETS = [
 
 interface OrderParserProps {
   onSaveOrder: (order: ScrapedOrder) => void;
+  inventory?: any[];
+  currentTenantId?: string;
 }
 
-export default function OrderParser({ onSaveOrder }: OrderParserProps) {
+export default function OrderParser({ onSaveOrder, inventory = [], currentTenantId = "tenant_colombo_retail" }: OrderParserProps) {
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorStatus, setErrorStatus] = useState<string | null>(null);
@@ -216,9 +219,113 @@ export default function OrderParser({ onSaveOrder }: OrderParserProps) {
       return " ".repeat(pad) + text;
     };
 
+    const wrapAndIndent = (label: string, value: string, specWidth: number, indentLen: number): string[] => {
+      const indent = " ".repeat(indentLen);
+      const valLimit = specWidth - indentLen;
+      if (valLimit <= 0) {
+        return [`${label}${value}`];
+      }
+      
+      const words = value.split(" ");
+      const valLines: string[] = [];
+      let currentLine = "";
+
+      for (const word of words) {
+        if (!word) continue;
+        if (currentLine.length === 0) {
+          if (word.length > valLimit) {
+            let tempWord = word;
+            while (tempWord.length > valLimit) {
+              valLines.push(tempWord.substring(0, valLimit));
+              tempWord = tempWord.substring(valLimit);
+            }
+            currentLine = tempWord;
+          } else {
+            currentLine = word;
+          }
+        } else {
+          if (currentLine.length + 1 + word.length <= valLimit) {
+            currentLine += " " + word;
+          } else {
+            valLines.push(currentLine);
+            if (word.length > valLimit) {
+              let tempWord = word;
+              while (tempWord.length > valLimit) {
+                valLines.push(tempWord.substring(0, valLimit));
+                tempWord = tempWord.substring(valLimit);
+              }
+              currentLine = tempWord;
+            } else {
+              currentLine = word;
+            }
+          }
+        }
+      }
+      if (currentLine) {
+        valLines.push(currentLine);
+      }
+
+      if (valLines.length === 0) {
+        return [`${label}`];
+      }
+
+      const result: string[] = [];
+      result.push(`${label}${valLines[0]}`);
+      for (let i = 1; i < valLines.length; i++) {
+        result.push(`${indent}${valLines[i]}`);
+      }
+      return result;
+    };
+
+    const centerWrapped = (text: string): string[] => {
+      if (text.length <= w) return [center(text)];
+      const words = text.split(" ");
+      const lines: string[] = [];
+      let currentLine = "";
+      for (const word of words) {
+        if (!word) continue;
+        if (currentLine.length === 0) {
+          if (word.length > w) {
+            let temp = word;
+            while (temp.length > w) {
+              lines.push(temp.substring(0, w));
+              temp = temp.substring(w);
+            }
+            currentLine = temp;
+          } else {
+            currentLine = word;
+          }
+        } else {
+          if (currentLine.length + 1 + word.length <= w) {
+            currentLine += " " + word;
+          } else {
+            lines.push(currentLine);
+            if (word.length > w) {
+              let temp = word;
+              while (temp.length > w) {
+                lines.push(temp.substring(0, w));
+                temp = temp.substring(w);
+              }
+              currentLine = temp;
+            } else {
+              currentLine = word;
+            }
+          }
+        }
+      }
+      if (currentLine) {
+        lines.push(currentLine);
+      }
+      return lines.map(line => center(line));
+    };
+
+    const wrapField = (label: string, value: string): string[] => {
+      return wrapAndIndent(label, value, w, label.length);
+    };
+
     const lines = [
-      center(storeName.toUpperCase()),
-      center(businessAddress),
+      ...centerWrapped(storeName.toUpperCase()),
+      ...centerWrapped(businessAddress),
       center(`Tel: ${businessPhone}`),
       businessOwner ? center(`Manager: ${businessOwner}`) : null,
       divider,
@@ -228,12 +335,12 @@ export default function OrderParser({ onSaveOrder }: OrderParserProps) {
       `BILL NO  : LN-TEMP-${Math.floor(100 + Math.random() * 899)}`,
       divider,
       "පාරිභෝගික විස්තර:",
-      `නම       : ${parsedData.customerName}`,
-      `දුරකථන   : ${parsedData.phone1}`,
-      parsedData.phone2 ? `අතිරේක   : ${parsedData.phone2}` : "",
-      `ලිපිනය   : ${parsedData.addressLine1 || ""}`,
-      parsedData.addressLine2 ? `             ${parsedData.addressLine2}` : "",
-      `නගරය     : ${parsedData.city} (${parsedData.district} Dist)`,
+      ...wrapField("නම       : ", parsedData.customerName),
+      ...wrapField("දුරකථන   : ", parsedData.phone1),
+      ...(parsedData.phone2 ? wrapField("අතිරේක   : ", parsedData.phone2) : []),
+      ...wrapField("ලිපිනය   : ", parsedData.addressLine1 || ""),
+      ...(parsedData.addressLine2 ? wrapField("             ", parsedData.addressLine2) : []),
+      ...wrapField("නගරය     : ", `${parsedData.city} (${parsedData.district} Dist)`),
       divider,
       "ITEMS:",
       divider,

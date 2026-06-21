@@ -221,3 +221,334 @@ body {
   color: #000000 !important;
 }
 
+/* ==========================================================================
+   EXCLUSIVE PREMIUM LIGHT-MODE (WHEN .light-warehouse IS ACTIVE)
+   ========================================================================== */
+
+/* 1. Global Core Layout Page customizer */
+.light-warehouse {
+  background-color: #f8fafc !important; /* Premium ice-white / slate color background */
+  color: #1e293b !important;
+}
+
+/* 2. Soft, premium shadow layers and background overrides for main containers/cards */
+.light-warehouse .bg-slate-900,
+.light-warehouse .bg-slate-900/40,
+.light-warehouse .bg-slate-950,
+.light-warehouse .bg-[#0b0f19],
+.light-warehouse .bg-[#080d1a],
+.light-warehouse .bg-slate-900/50 {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.04), 0 8px 10px -6px rgba(15, 23, 42, 0.04), 0 0 0 1px rgba(15, 23, 42, 0.05) !important;
+}
+
+/* Overriding manual form panels and outer layouts to beautiful soft off-whites */
+.light-warehouse .p-6.bg-slate-900,
+.light-warehouse .p-5.bg-slate-950,
+.light-warehouse .p-4.bg-slate-950 {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Internal card segments or rows inside manual forms */
+.light-warehouse .bg-slate-950.p-4,
+.light-warehouse .bg-slate-950.p-5,
+.light-warehouse .bg-slate-900.p-2.5,
+.light-warehouse .p-2.5.bg-slate-950 {
+  background-color: #f1f5f9 !important; 
+  border-color: #cbd5e1 !important;
+}
+
+/* Elegant borders in light mode */
+.light-warehouse .border-slate-800,
+.light-warehouse .border-slate-700/50,
+.light-warehouse .border-slate-800/60,
+.light-warehouse .border-slate-700 {
+  border-color: #e2e8f0 !important;
+}
+
+/* 3. Dropdowns, inputs, text fields and selects */
+.light-warehouse input,
+.light-warehouse select,
+.light-warehouse textarea {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+.light-warehouse input:focus,
+.light-warehouse select:focus,
+.light-warehouse textarea:focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12) !important;
+  outline: none !important;
+}
+
+.light-warehouse input::placeholder,
+.light-warehouse textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Light Mode Card Hero Highlights */
+.light-warehouse #dashboard-today-card {
+  background: linear-gradient(135deg, #f0f7ff 0%, #dbeafe 100%) !important;
+  border: 1px solid #93c5fd !important;
+  box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.15), 0 4px 6px -4px rgba(59, 130, 246, 0.15) !important;
+}
+
+.light-warehouse #dashboard-month-card {
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%) !important;
+  border: 1px solid #6ee7b7 !important;
+  box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.15), 0 4px 6px -4px rgba(16, 185, 129, 0.15) !important;
+}
+
+/* Specific children of Dashboard Cards */
+.light-warehouse #dashboard-today-card div[class*="bg-[#080b13]"],
+.light-warehouse #dashboard-today-card div[class*="bg-[#0a0d16]"],
+.light-warehouse #dashboard-today-card div[class*="bg-[#0b0f19]"] {
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  color: #1e3a8a !important;
+  border-color: rgba(147, 197, 253, 0.7) !important;
+  border-width: 1px !important;
+}
+
+.light-warehouse #dashboard-month-card div[class*="bg-[#080b13]"],
+.light-warehouse #dashboard-month-card div[class*="bg-[#0a0d16]"],
+.light-warehouse #dashboard-month-card div[class*="bg-[#0b0f19]"] {
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  color: #064e3b !important;
+  border-color: rgba(110, 231, 183, 0.7) !important;
+  border-width: 1px !important;
+}
+
+/* Text color overrides for Today Card details */
+.light-warehouse #dashboard-today-card,
+.light-warehouse #dashboard-today-card * {
+  color: #1e3a8a !important;
+}
+.light-warehouse #dashboard-today-card .text-slate-100,
+.light-warehouse #dashboard-today-card .text-slate-200,
+.light-warehouse #dashboard-today-card .text-slate-300,
+.light-warehouse #dashboard-today-card .text-slate-450 {
+  color: #1e40af !important;
+}
+.light-warehouse #dashboard-today-card .text-slate-400,
+.light-warehouse #dashboard-today-card .text-slate-500 {
+  color: #475569 !important;
+}
+.light-warehouse #dashboard-today-card .text-emerald-400 {
+  color: #15803d !important; /* Vivid dark emerald green */
+}
+.light-warehouse #dashboard-today-card .text-rose-450,
+.light-warehouse #dashboard-today-card .text-rose-400 {
+  color: #b91c1c !important; /* Vivid dark red */
+}
+.light-warehouse #dashboard-today-card .text-cyan-400,
+.light-warehouse #dashboard-today-card .text-cyan-500 {
+  color: #1d4ed8 !important;
+}
+.light-warehouse #dashboard-today-card .bg-slate-800 {
+  background-color: #cbd5e1 !important; /* progress bar background track */
+}
+
+/* Text color overrides for Monthly Card details */
+.light-warehouse #dashboard-month-card,
+.light-warehouse #dashboard-month-card * {
+  color: #064e3b !important;
+}
+.light-warehouse #dashboard-month-card .text-slate-100,
+.light-warehouse #dashboard-month-card .text-slate-200,
+.light-warehouse #dashboard-month-card .text-slate-300,
+.light-warehouse #dashboard-month-card .text-slate-450 {
+  color: #065f46 !important;
+}
+.light-warehouse #dashboard-month-card .text-slate-400,
+.light-warehouse #dashboard-month-card .text-slate-500 {
+  color: #334155 !important;
+}
+.light-warehouse #dashboard-month-card .text-emerald-400,
+.light-warehouse #dashboard-month-card .text-emerald-500 {
+  color: #047857 !important; /* Vivid dark emerald green */
+}
+.light-warehouse #dashboard-month-card .text-rose-450,
+.light-warehouse #dashboard-month-card .text-rose-400 {
+  color: #b91c1c !important; /* Vivid dark red */
+}
+.light-warehouse #dashboard-month-card .text-cyan-400,
+.light-warehouse #dashboard-month-card .text-cyan-500 {
+  color: #047857 !important;
+}
+.light-warehouse #dashboard-month-card .bg-slate-800 {
+  background-color: #cbd5e1 !important; /* progress bar track */
+}
+
+/* Interactive tester buttons and plus/minus icons in Cards */
+.light-warehouse #dashboard-today-card button {
+  background-color: #3b82f6 !important;
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+}
+.light-warehouse #dashboard-today-card button:hover {
+  background-color: #2563eb !important;
+}
+
+.light-warehouse #dashboard-month-card button {
+  background-color: #10b981 !important;
+  color: #ffffff !important;
+  border-color: #059669 !important;
+}
+.light-warehouse #dashboard-month-card button:hover {
+  background-color: #059669 !important;
+}
+
+.light-warehouse #dashboard-today-card button,
+.light-warehouse #dashboard-month-card button {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+  font-weight: 800 !important;
+  color: #ffffff !important;
+}
+
+.light-warehouse #dashboard-today-card button *,
+.light-warehouse #dashboard-month-card button * {
+  color: #ffffff !important;
+}
+
+/* 4. CFO Strategic Business Audit Notes (Fully reactive insights) */
+.light-warehouse .bg-\[\#0d1220\]\/75 {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #1e293b !important;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05) !important;
+}
+
+.light-warehouse .bg-\[\#0d1220\]\/75.border-blue-500 {
+  background: linear-gradient(to right, #eff6ff, #dbeafe) !important;
+  border-color: #3b82f6 !important;
+  border-width: 2px !important;
+}
+.light-warehouse .bg-\[\#0d1220\]\/75.border-blue-500 * {
+  color: #1e40af !important;
+}
+
+.light-warehouse .bg-\[\#0d1220\]\/75.border-emerald-500 {
+  background: linear-gradient(to right, #ecfdf5, #d1fae5) !important;
+  border-color: #10b981 !important;
+  border-width: 2px !important;
+}
+.light-warehouse .bg-\[\#0d1220\]\/75.border-emerald-500 * {
+  color: #065f46 !important;
+}
+
+.light-warehouse .bg-\[\#0d1220\]\/75.border-fuchsia-500 {
+  background: linear-gradient(to right, #fdf4ff, #fae8ff) !important;
+  border-color: #d946ef !important;
+  border-width: 2px !important;
+}
+.light-warehouse .bg-\[\#0d1220\]\/75.border-fuchsia-500 * {
+  color: #86198f !important;
+}
+
+/* 5. Clean, high-readability Typography adjustment */
+.light-warehouse .text-white,
+.light-warehouse .text-slate-100,
+.light-warehouse .text-slate-200 {
+  color: #0f172a !important;
+}
+
+.light-warehouse .text-slate-300,
+.light-warehouse .text-slate-400 {
+  color: #334155 !important;
+}
+
+.light-warehouse .text-slate-500,
+.light-warehouse .text-slate-600 {
+  color: #475569 !important;
+}
+
+/* Highlight tags with rich text colors */
+.light-warehouse .text-cyan-400,
+.light-warehouse .text-cyan-500 {
+  color: #0284c7 !important;
+}
+.light-warehouse .text-amber-500 {
+  color: #d97706 !important;
+}
+.light-warehouse .text-emerald-400,
+.light-warehouse .text-emerald-500 {
+  color: #059669 !important;
+}
+.light-warehouse .text-fuchsia-400,
+.light-warehouse .text-fuchsia-500 {
+  color: #c026d3 !important;
+}
+
+/* Restore crisp white color inside primary actions, brand badges, and filled action buttons */
+.light-warehouse button[class*="bg-blue-600"],
+.light-warehouse .bg-blue-600,
+.light-warehouse .bg-blue-600 *,
+.light-warehouse .bg-indigo-600 *,
+.light-warehouse .bg-emerald-605,
+.light-warehouse .bg-emerald-600 *,
+.light-warehouse .bg-rose-500 *,
+.light-warehouse .bg-rose-600 *,
+.light-warehouse .bg-gradient-to-tr *,
+.light-warehouse .text-white-forced {
+  color: #ffffff !important;
+}
+
+/* Preserve specific background colors which should remain vivid and legible */
+.light-warehouse .bg-blue-950/40,
+.light-warehouse .bg-blue-950/50 {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  color: #1e40af !important;
+}
+
+.light-warehouse .bg-emerald-950/50 {
+  background-color: rgba(16, 185, 129, 0.1) !important;
+  color: #065f46 !important;
+}
+
+.light-warehouse .bg-fuchsia-950/50 {
+  background-color: rgba(217, 70, 239, 0.1) !important;
+  color: #86198f !important;
+}
+
+/* 6. Fix for Select inputs on dropdown selectors background mismatch */
+.light-warehouse select option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+/* 7. Retain the elegant and professional Dark Sidebar styling so it continues to look like a premium hybrid dashboard */
+.light-warehouse aside.bg-slate-900,
+.light-warehouse aside.bg-slate-900 * {
+  background-color: #0f172a !important;
+  color: #f1f5f9 !important;
+}
+
+.light-warehouse aside.bg-slate-900 .text-slate-500,
+.light-warehouse aside.bg-slate-900 .text-slate-400 {
+  color: #94a3b8 !important;
+}
+
+.light-warehouse aside.bg-slate-900 input {
+  background-color: #1e293b !important;
+  color: #ffffff !important;
+  border-color: #334155 !important;
+}
+
+.light-warehouse aside.bg-slate-900 .bg-slate-950/40 {
+  background-color: rgba(15, 23, 42, 0.6) !important;
+}
+
+/* Keep Top Ribbon Midnight-dark with pristine contrast */
+.light-warehouse .bg-slate-900:first-child,
+.light-warehouse .bg-slate-900:first-child * {
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+}
+
+

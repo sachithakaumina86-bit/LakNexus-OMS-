@@ -55,6 +55,7 @@ export interface ScrapedOrder {
   createdAt: string;
   rawInput: string;
   status: "Pending Check" | "Approved" | "High Risk Hold" | "Dispatched" | "Delivered" | "Returned";
+  paymentType?: "COD" | "Prepaid";
 }
 
 export interface AdCampaignData {

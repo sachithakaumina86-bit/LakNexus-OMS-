@@ -4,7 +4,7 @@ import {
   Sparkles, FileText, BarChart2, CheckCircle2, TrendingUp, AlertTriangle, 
   Settings, ArrowUpRight, ShieldCheck, Heart, LogIn, Menu, X, Sliders, ShieldAlert, Save, Trash2, HelpCircle, Truck, ClipboardList, Wallet,
   Calculator, Zap, RefreshCw, Target, Package, FolderKanban, Lightbulb,
-  Plus, Search, Printer
+  Plus, Search, Printer, ShoppingCart
 } from "lucide-react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
@@ -13,16 +13,18 @@ import laknexusLogo from "./assets/images/laknexus_purple_logo_1780812251577.png
 
 import MetricCard from "./components/MetricCard";
 import OrderParser from "./components/OrderParser";
+import ManualOrderForm from "./components/ManualOrderForm";
 import ActiveOrders from "./components/ActiveOrders";
 import FinancialPlanner from "./components/FinancialPlanner";
 import InventoryManager from "./components/InventoryManager";
 import BusinessIntelligence from "./components/BusinessIntelligence";
 import ProductsSection from "./components/ProductsSection";
 import EnterpriseSuite from "./components/EnterpriseSuite";
+import { DeliveryManager } from "./components/DeliveryManager";
 import { ScrapedOrder } from "./types";
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<"dashboard" | "parser" | "financials" | "ledger" | "settings" | "security" | "inventory" | "intelligence" | "products" | "enterprise">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "parser" | "manual_entry" | "financials" | "ledger" | "settings" | "security" | "inventory" | "intelligence" | "products" | "enterprise" | "delivery">("dashboard");
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
   const [isQuickActionsOpen, setIsQuickActionsOpen] = useState(false);
@@ -1011,6 +1013,32 @@ export default function App() {
           </button>
 
           <button
+            id="sidebar-tab-manual-entry"
+            onClick={() => {
+              setActiveTab("manual_entry");
+              setIsMobileSidebarOpen(false);
+            }}
+            className={`group w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold transition-all ${
+              activeTab === "manual_entry" 
+                ? "bg-blue-600 text-white shadow-md shadow-blue-900/20" 
+                : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+            }`}
+          >
+            <ShoppingCart 
+              size={18} 
+              className={`shrink-0 transition-colors duration-200 ${
+                activeTab === "manual_entry" 
+                  ? "text-blue-200 drop-shadow-[0_0_8px_rgba(59,130,246,0.75)]" 
+                  : "text-blue-500/80 group-hover:text-blue-300"
+              }`} 
+            />
+            <div className="flex-1">
+              <p className="leading-tight text-slate-100">Manual Order Entry</p>
+              <p className="text-[9px] text-slate-500 font-medium mt-0.5">අතින් ඇණවුම් ඇතුලත් කිරීම</p>
+            </div>
+          </button>
+
+          <button
             id="sidebar-tab-ledger"
             onClick={() => {
               setActiveTab("ledger");
@@ -1036,6 +1064,32 @@ export default function App() {
                 <span className="bg-slate-800 text-slate-300 px-2 py-0.5 rounded-full text-[8px] font-extrabold">{orders.length}</span>
               </p>
               <p className="text-[9px] text-slate-500 font-medium mt-0.5">ඇණවුම් කළමනාකරණය</p>
+            </div>
+          </button>
+
+          <button
+            id="sidebar-tab-delivery"
+            onClick={() => {
+              setActiveTab("delivery");
+              setIsMobileSidebarOpen(false);
+            }}
+            className={`group w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-bold transition-all ${
+              activeTab === "delivery" 
+                ? "bg-blue-600 text-white shadow-md shadow-blue-900/20" 
+                : "text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+            }`}
+          >
+            <Truck 
+              size={18} 
+              className={`shrink-0 transition-colors duration-200 ${
+                activeTab === "delivery" 
+                  ? "text-blue-200 drop-shadow-[0_0_8px_rgba(59,130,246,0.75)]" 
+                  : "text-blue-400/90 group-hover:text-blue-300"
+              }`} 
+            />
+            <div className="flex-1">
+              <p className="leading-tight text-slate-100">Delivery Manager</p>
+              <p className="text-[9px] text-slate-500 font-medium mt-0.5">බෙදාහැරීම් කළමනාකරණය</p>
             </div>
           </button>
         </div>
@@ -1234,7 +1288,7 @@ export default function App() {
   );
 
   return (
-    <div className={`min-h-screen bg-slate-50 text-slate-800 font-sans antialiased selection:bg-blue-100 selection:text-blue-900 flex flex-col ${isDarkMode ? "dark-warehouse" : ""}`}>
+    <div className={`min-h-screen bg-slate-50 text-slate-800 font-sans antialiased selection:bg-blue-100 selection:text-blue-900 flex flex-col ${isDarkMode ? "dark-warehouse" : "light-warehouse"}`}>
       
       {/* Top Premium Ribbon Bar */}
       <div className="bg-slate-900 text-white text-xs py-2 px-6 flex justify-between items-center border-b border-slate-800 z-30 shrink-0">
@@ -2053,7 +2107,19 @@ export default function App() {
               )}
 
               {activeTab === "parser" && (
-                <OrderParser onSaveOrder={handleSaveOrder} />
+                <OrderParser 
+                  onSaveOrder={handleSaveOrder} 
+                  inventory={inventory}
+                  currentTenantId={currentTenantId}
+                />
+              )}
+
+              {activeTab === "manual_entry" && (
+                <ManualOrderForm 
+                  onSaveOrder={handleSaveOrder} 
+                  inventory={inventory}
+                  currentTenantId={currentTenantId}
+                />
               )}
 
               {activeTab === "ledger" && (
@@ -2061,6 +2127,15 @@ export default function App() {
                   orders={orders}
                   onDeleteOrder={handleDeleteOrder}
                   onUpdateStatus={handleUpdateStatus}
+                />
+              )}
+
+              {activeTab === "delivery" && (
+                <DeliveryManager
+                  orders={orders}
+                  setOrders={setOrders}
+                  onUpdateStatus={handleUpdateStatus}
+                  currentTenantId={currentTenantId}
                 />
               )}
 

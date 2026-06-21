@@ -54,6 +54,14 @@ export default function InventoryManager({
   const [newStockAlert, setNewStockAlert] = useState<number>(5);
   const [newStockSku, setNewStockSku] = useState("");
 
+  // Live Inventory Catalog Search & Quick Add states
+  const [matrixSearchQuery, setMatrixSearchQuery] = useState("");
+  const [showQuickAdd, setShowQuickAdd] = useState(false);
+  const [quickName, setQuickName] = useState("");
+  const [quickSku, setQuickSku] = useState("");
+  const [quickPrice, setQuickPrice] = useState("");
+  const [quickQty, setQuickQty] = useState("");
+
   const tenantKey = currentTenantId || "default";
   const DEFAULT_TENANT_INVENTORY = DEFAULT_TENANT_INVENTORIES[tenantKey] || DEFAULT_TENANT_INVENTORIES["default"];
 
@@ -225,6 +233,73 @@ export default function InventoryManager({
     setNewStockAlert(5);
     setNewStockSku("");
     setIsAddStockOpen(false);
+  };
+
+  const handleQuickAddSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!quickName.trim()) {
+      alert("භාණ්ඩයේ නම ඇතුළත් කිරීම අනිවාර්ය වේ. (Product Name is required)");
+      return;
+    }
+    const priceVal = Number(quickPrice) || 0;
+    const qtyVal = Number(quickQty) || 0;
+    const costVal = Math.round(priceVal * 0.6); // Auto-extrapolate default cost as 60% of sale price for robust stats
+
+    const nextId = String(inventory.length > 0 ? Math.max(...inventory.map(i => parseInt(i.id) || 0)) + 1 : 1);
+    const skuVal = quickSku.trim() || `SKU-${quickName.trim().toUpperCase().replace(/\s+/g, "-").replace(/[^A-Z0-9-]/g, "")}-${nextId}`;
+
+    const newItem: InventoryItem = {
+      id: nextId,
+      name: quickName.trim(),
+      cost: costVal,
+      price: priceVal,
+      stock: qtyVal
+    };
+
+    const newInventory = [...inventory, newItem];
+    setInventory(newInventory);
+
+    // Save standard inventory for the tenant
+    const tenantInvKey = `laknexus_${currentTenantId || "default"}_inventory`;
+    localStorage.setItem(tenantInvKey, JSON.stringify(newInventory));
+
+    // Create and save to rich products as well for dual synchronization
+    const newRich = {
+      id: nextId,
+      name: quickName.trim(),
+      sku: skuVal,
+      category: "E-Commerce Goods",
+      description: `Premium quality ${quickName.trim()} with premium packing.`,
+      productType: "Simple" as const,
+      status: "Active" as const,
+      lowStockAlert: 5,
+      costPrice: costVal,
+      salePrice: priceVal,
+      stockQuantity: qtyVal,
+      weight: 0.35,
+      dimensions: {
+        length: 15,
+        width: 10,
+        height: 5
+      }
+    };
+
+    const updatedRichProducts = [...richProducts, newRich];
+    setRichProducts(updatedRichProducts);
+    localStorage.setItem(productsKey, JSON.stringify(updatedRichProducts));
+
+    // Emit storage event
+    window.dispatchEvent(new Event("storage"));
+
+    setToastMessage(`🎉 "${quickName.trim()}" සාර්ථකව ඇතුළත් කරන ලදී!`);
+    setTimeout(() => setToastMessage(null), 4000);
+
+    // Reset quick fields
+    setQuickName("");
+    setQuickSku("");
+    setQuickPrice("");
+    setQuickQty("");
+    setShowQuickAdd(false);
   };
 
   // Isolate chat history session-wise (each unique session or user view)
@@ -722,19 +797,118 @@ export default function InventoryManager({
             </div>
           )}
 
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col h-[356px]" id="live-matrix-container">
-            <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-              <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2 animate-fade-in">
-                <PackageSearch className="text-blue-600 animate-pulse" size={18} />
-                Live Inventory Matrix
-              </h4>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 animate-pulse">
-                System Active
-              </span>
+          <div className="bg-[#0b0f19] rounded-2xl border border-slate-800 shadow-xl overflow-hidden flex flex-col h-[460px]" id="live-matrix-container">
+            <div className="p-4 border-b border-slate-850 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#0d1222]">
+              <div className="flex items-center gap-2">
+                <PackageSearch className="text-blue-500 animate-pulse" size={18} />
+                <div>
+                  <h4 className="text-sm font-bold text-white leading-tight animate-fade-in">
+                    Live Inventory Matrix / සක්‍රීය තොග පාලක ලේඛනය
+                  </h4>
+                  <p className="text-[10px] text-slate-400">එසැණින් තොග පරීක්ෂාව සහ ඇතුළත් කිරීම</p>
+                </div>
+              </div>
+
+              {/* Live Search and Quick Add Button Panel */}
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search SKU or Name..."
+                    value={matrixSearchQuery}
+                    onChange={(e) => setMatrixSearchQuery(e.target.value)}
+                    className="pl-3.5 pr-8 py-1.5 text-xs bg-[#070a13] border border-slate-800 focus:border-blue-500 text-white rounded-lg focus:outline-none w-48 font-medium placeholder-slate-505"
+                  />
+                  {matrixSearchQuery && (
+                    <button
+                      onClick={() => setMatrixSearchQuery("")}
+                      className="absolute right-2 top-1.5 px-1 text-[10px] text-slate-500 hover:text-slate-300"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+
+                <button
+                  onClick={() => setShowQuickAdd(!showQuickAdd)}
+                  className="px-3 py-1.5 bg-blue-650 hover:bg-blue-600 text-white text-xs font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer active:scale-95"
+                >
+                  {showQuickAdd ? "✕ Close Form" : "⚡ Quick Add Item"}
+                </button>
+              </div>
             </div>
+
+            {/* Collapsible Quick Add Form */}
+            <AnimatePresence>
+              {showQuickAdd && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="overflow-hidden border-b border-slate-800 bg-[#0d1527]/50"
+                >
+                  <form onSubmit={handleQuickAddSubmit} className="p-4 grid grid-cols-1 sm:grid-cols-4 gap-3 text-left">
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Product Name / නම</label>
+                      <input
+                        type="text"
+                        required
+                        value={quickName}
+                        onChange={(e) => setQuickName(e.target.value)}
+                        placeholder="e.g. Trendy Cotton Shirt"
+                        className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-800 bg-[#070a13] text-white focus:outline-none focus:border-blue-500 placeholder-slate-700"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">SKU Code (Optional)</label>
+                      <input
+                        type="text"
+                        value={quickSku}
+                        onChange={(e) => setQuickSku(e.target.value)}
+                        placeholder="e.g. SKU-SHIRT-M"
+                        className="w-full text-xs font-mono px-2.5 py-1.5 rounded-lg border border-slate-800 bg-[#070a13] text-white focus:outline-none focus:border-blue-500 placeholder-slate-700"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Selling Price (LKR)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        required
+                        value={quickPrice}
+                        onChange={(e) => setQuickPrice(e.target.value)}
+                        placeholder="Price e.g. 2450"
+                        className="w-full text-xs font-mono px-2.5 py-1.5 rounded-lg border border-slate-800 bg-[#070a13] text-white focus:outline-none focus:border-blue-500 placeholder-slate-700"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Qty / තොගය</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="number"
+                          min="0"
+                          required
+                          value={quickQty}
+                          onChange={(e) => setQuickQty(e.target.value)}
+                          placeholder="qty e.g. 100"
+                          className="w-full text-xs font-mono px-2.5 py-1.5 rounded-lg border border-slate-800 bg-[#070a13] text-white focus:outline-none focus:border-blue-500 placeholder-slate-700 focus:ring-1 focus:ring-blue-500"
+                        />
+                        <button
+                          type="submit"
+                          className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg transition-all cursor-pointer block leading-none saturate-125 hover:scale-105 shrink-0"
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <div className="overflow-y-auto flex-1 font-sans">
               <table className="w-full text-left text-sm whitespace-nowrap">
-                <thead className="sticky top-0 bg-slate-50 border-b border-slate-100 z-10 text-slate-500 text-xs font-semibold select-none">
+                <thead className="sticky top-0 bg-[#0e1424] border-b border-slate-800 z-10 text-slate-400 text-xs font-semibold select-none">
                   <tr>
                     <th className="py-2.5 px-4 text-left">SKU</th>
                     <th className="py-2.5 px-4 text-left">Product Name</th>
@@ -742,15 +916,28 @@ export default function InventoryManager({
                     <th className="py-2.5 px-4 text-center">Status</th>
                   </tr>
                 </thead>
-                <tbody>
-                  {inventory.length === 0 ? (
-                    <tr>
-                      <td colSpan={4} className="py-8 text-center text-slate-400 text-xs font-medium">
-                        No inventory records found.
-                      </td>
-                    </tr>
-                  ) : (
-                    inventory.map(item => {
+                <tbody className="bg-[#070a13]">
+                  {(() => {
+                    const filteredInventory = inventory.filter(item => {
+                      const rich = richProducts.find(p => p.id === item.id);
+                      const skuVal = (item.sku || rich?.sku || `SKU-${item.name.replace(/\s+/g, "-").toUpperCase()}-${item.id}`).toLowerCase();
+                      const nameVal = item.name.toLowerCase();
+                      const query = matrixSearchQuery.toLowerCase().trim();
+                      if (!query) return true;
+                      return nameVal.includes(query) || skuVal.includes(query);
+                    });
+
+                    if (filteredInventory.length === 0) {
+                      return (
+                        <tr>
+                          <td colSpan={4} className="py-8 text-center text-slate-500 text-xs font-medium">
+                            No inventory records matched your search query.
+                          </td>
+                        </tr>
+                      );
+                    }
+
+                    return filteredInventory.map(item => {
                       const rich = richProducts.find(p => p.id === item.id);
                       const skuVal = item.sku || rich?.sku || `SKU-${item.name.replace(/\s+/g, "-").toUpperCase()}-${item.id}`;
                       const alertThreshold = item.lowStockAlert !== undefined ? item.lowStockAlert : (rich?.lowStockAlert !== undefined ? rich.lowStockAlert : 5);
@@ -758,13 +945,13 @@ export default function InventoryManager({
                       const isLowStock = item.stock <= alertThreshold;
 
                       return (
-                        <tr key={item.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                        <tr key={item.id} className="border-b border-slate-900 hover:bg-slate-800/40 transition-colors">
                           {/* SKU Column */}
-                          <td className="py-2.5 px-4 font-mono text-[11px] text-slate-500 truncate max-w-[110px]" title={skuVal}>
+                          <td className="py-2.5 px-4 font-mono text-[11px] text-slate-400 truncate max-w-[110px]" title={skuVal}>
                             {skuVal}
                           </td>
                           {/* Product Name Column */}
-                          <td className="py-2.5 px-4 font-bold text-slate-800 text-xs truncate max-w-[130px]" title={item.name}>
+                          <td className="py-2.5 px-4 font-bold text-slate-200 text-xs truncate max-w-[130px]" title={item.name}>
                             {item.name}
                           </td>
                           {/* Available Stock Column with direct inline adjustments */}
@@ -774,7 +961,7 @@ export default function InventoryManager({
                                 type="button"
                                 onClick={() => handleUpdateStock(item.id, item.stock - 1)}
                                 className={`w-5 h-5 rounded hover:bg-opacity-80 active:scale-95 flex items-center justify-center font-bold text-xs cursor-pointer ${
-                                  isLowStock ? "bg-amber-100 text-amber-700 hover:bg-amber-200" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                  isLowStock ? "bg-amber-950 text-amber-400 border border-amber-900/40 hover:bg-amber-900" : "bg-slate-800 text-slate-300 hover:bg-slate-700"
                                 }`}
                               >
                                 -
@@ -785,10 +972,10 @@ export default function InventoryManager({
                                 min="0"
                                 value={item.stock}
                                 onChange={(e) => handleUpdateStock(item.id, Math.max(0, parseInt(e.target.value) || 0))}
-                                className={`w-12 text-center text-xs font-extrabold font-mono rounded py-0.5 outline-none focus:ring-1 focus:ring-blue-400 border border-transparent ${
+                                className={`w-12 text-center text-xs font-extrabold font-mono rounded py-0.5 outline-none focus:ring-1 focus:ring-blue-500 border border-slate-800 bg-[#070a13] ${
                                   isLowStock 
-                                    ? "bg-amber-100 text-amber-700 font-extrabold border-amber-300" 
-                                    : "bg-slate-100 text-slate-700"
+                                    ? "text-amber-400 font-extrabold" 
+                                    : "text-slate-200"
                                 }`}
                               />
 
@@ -796,7 +983,7 @@ export default function InventoryManager({
                                 type="button"
                                 onClick={() => handleUpdateStock(item.id, item.stock + 1)}
                                 className={`w-5 h-5 rounded hover:bg-opacity-80 active:scale-95 flex items-center justify-center font-bold text-xs cursor-pointer ${
-                                  isLowStock ? "bg-amber-100 text-amber-700 hover:bg-amber-200" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                  isLowStock ? "bg-amber-950 text-amber-400 border border-amber-900/40 hover:bg-amber-900" : "bg-slate-800 text-slate-300 hover:bg-slate-700"
                                 }`}
                               >
                                 +
@@ -806,20 +993,20 @@ export default function InventoryManager({
                           {/* Status/Badge Column */}
                           <td className="py-2.5 px-4 text-center">
                             {isLowStock ? (
-                              <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-amber-50 text-amber-700 border border-amber-250 uppercase tracking-tight inline-flex items-center gap-1">
+                              <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-amber-950/65 text-amber-400 border border-amber-900 uppercase tracking-tight inline-flex items-center gap-1">
                                 <span className="w-1 h-1 rounded-full bg-amber-500 animate-pulse"></span>
                                 Low Stock
                               </span>
                             ) : (
-                              <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-150 uppercase tracking-tight inline-width shrink-0">
+                              <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-[#064e3b] text-emerald-405 border border-emerald-900 uppercase tracking-tight inline-width shrink-0">
                                 {statusVal}
                               </span>
                             )}
                           </td>
                         </tr>
                       );
-                    })
-                  )}
+                    });
+                  })()}
                 </tbody>
               </table>
             </div>
